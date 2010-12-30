@@ -21,7 +21,11 @@ get '/' do
   "#{Time.now - start_time}"
 end
 
-get '/count' do
+get '/count' do 
+  Person.find(:count)
+end
+
+get '/all' do
   persons = Person.all
   array = []
   persons.each { |p| array << {'name' => p.name, 'age' => p.age} }
