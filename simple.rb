@@ -1,7 +1,6 @@
 require 'sinatra'
 require 'simple_record'
 
-
 AWS_ACCESS_KEY_ID='AKIAIAFEKFHWPNPTZGZQ'
 AWS_SECRET_ACCESS_KEY='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'
 SimpleRecord.establish_connection(AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY)
