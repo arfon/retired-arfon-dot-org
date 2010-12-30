@@ -1,3 +1,4 @@
+require 'extensions/all'
 require 'sinatra'
 require 'simple_record'
 
