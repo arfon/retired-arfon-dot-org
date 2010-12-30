@@ -22,7 +22,7 @@ get '/' do
 end
 
 get '/count' do 
-  Person.find(:count)
+  "#{Person.find(:count)}"
 end
 
 get '/all' do
