@@ -14,7 +14,8 @@ end
 get '/' do
   start_time = Time.now
   (1..1000).each do |i|
-    Person.create(:name => "#{i_name}", :age => i)
+    person = Person.new(:name => "#{i_name}", :age => i)
+    person.save
   end
   "#{Time.now - start_time}"
 end
