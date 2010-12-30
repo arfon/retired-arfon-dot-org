@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'extensions/all'
 require 'sinatra'
 require 'simple_record'
@@ -21,5 +22,8 @@ get '/' do
 end
 
 get '/count' do
-  "There are: #{Person.count} Persons"
+  persons = Person.all
+  array = []
+  persons.each { |p| array << {'name' => p.name, 'age' => p.age} }
+  "#{array.to_s}"
 end
