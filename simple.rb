@@ -13,7 +13,7 @@ class Person < SimpleRecord::Base
 end
 
 get '/' do
-  "Arfon Smith - I work at the <a href='http://zooniverse.org'>Zooniverse</a>.  I'm <a href='http://twitter.com/arfon' target='_blank'>@arfon</a> on Twitter"
+  "Hello, I'm Arfon Smith.  I work at the <a href='http://zooniverse.org' target='_blank'>Zooniverse</a>.  If you need to contact me then you can email me on <a href='mailto:arfon@zooniverse.org'>arfon@zooniverse.org</a> or find me <a href='http://twitter.com/arfon' target='_blank'>on Twitter</a>."
 end
 
 get '/count' do 
