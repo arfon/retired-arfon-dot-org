@@ -13,12 +13,7 @@ class Person < SimpleRecord::Base
 end
 
 get '/' do
-  start_time = Time.now
-  (1..100).each do |i|
-    person = Person.new(:name => "#{i}_name", :age => i)
-    person.save
-  end
-  "#{Time.now - start_time}"
+  "Arfon Smith - I work at the <a href='http://zooniverse.org'>Zooniverse</a>.  I'm <a href='http://twitter.com/arfon' target='_blank'>@arfon</a> on Twitter"
 end
 
 get '/count' do 
