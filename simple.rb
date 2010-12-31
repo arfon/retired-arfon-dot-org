@@ -2,6 +2,9 @@ require 'rubygems'
 require 'extensions/all'
 require 'sinatra'
 require 'simple_record'
+require 'haml'
+set :haml, :format => :html5 
+
 
 AWS_ACCESS_KEY_ID='AKIAIAFEKFHWPNPTZGZQ'
 AWS_SECRET_ACCESS_KEY='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'
@@ -14,6 +17,10 @@ end
 
 get '/' do
   "Hello, I'm Arfon Smith.  I work at the <a href='http://zooniverse.org' target='_blank'>Zooniverse</a>.  If you need to contact me then you can email me on <a href='mailto:arfon@zooniverse.org'>arfon@zooniverse.org</a> or find me <a href='http://twitter.com/arfon' target='_blank'>on Twitter</a>."
+end
+
+get '/haml' do 
+  haml :index
 end
 
 get '/count' do 
