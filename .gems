@@ -2,4 +2,3 @@ extensions
 sinatra
 simple_record
 i18n
-erb
