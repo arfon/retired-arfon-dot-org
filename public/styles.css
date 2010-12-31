@@ -1,3 +1,13 @@
+#centre{
+	margin:40px auto;
+}
+
 h1{
 	font-family:Georgia, serif;
+	font-weight:lighter;
+}
+
+p{
+	font-family:helvetica, arial, sans-serif;
+	font-size:14px;
 }
