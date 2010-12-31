@@ -14,7 +14,7 @@ end
 
 get '/' do
   start_time = Time.now
-  (1..1000).each do |i|
+  (1..100).each do |i|
     person = Person.new(:name => "#{i}_name", :age => i)
     person.save
   end
@@ -30,4 +30,9 @@ get '/all' do
   array = []
   persons.each { |p| array << {'name' => p.name, 'age' => p.age} }
   "#{array.to_s}"
+end
+
+get '/delete' do
+  Person.all.each {|p| p.destroy}
+  # Person.destroy_all(:conditions => ['created_at > ?', 3.weeks.ago])
 end
