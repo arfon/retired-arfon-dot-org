@@ -2,7 +2,7 @@ require 'rubygems'
 require 'extensions/all'
 require 'sinatra'
 require 'simple_record'
-require 'Haml'
+require 'haml'
 set :haml, :format => :html5 
 
 
