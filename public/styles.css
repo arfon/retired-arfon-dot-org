@@ -18,7 +18,7 @@ h3{
 	font-size:1.3em;
 }
 
-p, ul, ul li{
+p, ul, ul li, ol, ol li{
 	font-family:helvetica, arial, sans-serif;
 	font-size:1em;
 }
