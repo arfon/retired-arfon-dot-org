@@ -20,7 +20,7 @@
     <p>
       <ul>
         <% @posts.each do |post| %>
-          <li><a href="/<%= post %>"><%= post.titlecase %></a></li>
+          <li><a href="/<%= post %>"><%= post.gsub('_', '').gsub('-', '').titlecase %></a></li>
         <% end %>
       </ul>
     </p>
