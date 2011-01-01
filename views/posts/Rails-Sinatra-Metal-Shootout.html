@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Rails / Sinatra / Metal Shootout</title>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Rails / Sinatra / Metal Shootout</h1>
+     <p>I'm currently in Las Vegas attending <a href="http://railsconf.com">RailsConf 2009</a>.  This morning I heard <a href="http://heroku.com/">Heroku's</a> <a href="http://adam.blog.heroku.com/">Adam Wiggins</a> give an excellent overview of Rails Metal, Rack and <a href="http://www.sinatrarb.com/">Sinatra</a>.</p>
+
+    <p>Some time ago now, Rails adopted <a href="http://rack.rubyforge.org/">Rack</a> as its middleware layer.  For those not in the know (myself included before Adam's talk), according to <a href="http://guides.rubyonrails.org/rails_on_rack.html">RailsGuides</a> Rack is:</p>
+
+    <blockquote>Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.</blockquote> 
+
+    <p>Metal is essentially a thin wrapper around the Rack middleware layer of Rails.  Why is this important?  Well, by dropping down into Metal it's possible to completely bypass the Rails framework and squeeze the absolute maximum performance out of your stack.  Specifically this can be useful for a common request to your application where the response time is crucial and you want to avoid the extra overhead of passing through the Rails routing mechanism before serving a response.</p>
+
+    <h3>&raquo; The Test</h3> 
+
+    <p>OK, so enough talk, what do the numbers look like?  This is by no means meant to be a thorough test of all possible permutations of Rails, <a href="http://www.sinatrarb.com/">Sinatra</a> and Metal, rather I'm interested in replacing a simple API method with a Sinatra application and a Metal endpoint.  The API I'm testing is the Galaxy Zoo API layer.  Within the Galaxy Zoo API we have the concept of 'Assets'.  An Asset is something like a <a href="http://www.sdss.org/">SDSS</a> galaxy image and a frequently accessed API url looks like:</p>
+
+    <p><code>http://api_url/api/assets/:id</code></p>
+
+    <p>This API call returns a simple XML snippet that looks something like this:</p>
+    <p><code> 
+    &lt;?xml&nbsp;version="1.0"&nbsp;encoding="UTF-8"?&gt;<br />
+    &lt;asset&gt;<br />
+    &nbsp;&nbsp;&lt;id&gt;1&lt;/id&gt;<br />
+    &nbsp;&nbsp;&lt;location&gt;http://s3.aws.com/1.jpg&lt;/location&gt;<br />
+    &nbsp;&nbsp;&lt;project_id&gt;1&lt;/project_id&gt;<br />
+    &nbsp;&nbsp;&lt;external_ref&gt;&lt;/external_ref&gt;<br />
+    &lt;/asset&gt;
+    </code></p>
+
+    <p>I used <a href="http://httpd.apache.org/docs/2.0/programs/ab.html">Apache benchmark</a> to test each option.   Passenger 2.2.2 / Rails 2.3.2 and my MacBook Pro (2.53 GHz) were used to serve the application.  Also, to ensure a reasonably fair test I rebooted the OS for each variant and 'warmed up' Apache by running the test 4 times before taking the benchmark results from the 5th and final time I issued this command:</p>
+
+    <p><code>ab -n 1000 -c 4 http://api_url/api/assets/1</code></p>
+
+    <p>This is basically making 1000 requests with 4 concurrent connections.</p>
+
+    <h3>&raquo; The Results</h3> 
+    <p>OK, so first up I used a standard Rails controller action, the code for which is shown below:</p>
+    <p><code> 
+    def show<br />
+    &nbsp;&nbsp;@asset = Asset.find(params[:id])<br />
+    <br />
+    &nbsp;&nbsp;respond_to do |format|<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;format.xml { render :xml =&gt; @asset.to_xml }<br />
+    &nbsp;&nbsp;end<br />
+    end
+    </code></p>
+
+    <p>This came out at a very reasonable 230 requests per second:<br />
+    Requests per second: 229.64 [#/sec] (mean)</p>
+
+    <p>Next up I added in a Sinatra 'application' to respond to the api/assets/:id url.  Because of the way that Rails uses Rack, the Sinatra/Metal endpoints are picked up before the Rails routing mechanism kicks in, no modification is therefore required to the routes.rb config to make the Sinatra application pick up the request url.</p>
+
+    <p>By default Sinatra/Metal endpoints are picked up if they are placed in the RAILS_ROOT/app/metal/ and have a class name that represents the filename for the Sinatra application:</p>
+
+    <p><code>RAILS_ROOT/app/metal/sinatra_asset.rb</code> </p>
+
+    <p><code>
+    require 'sinatra'<br />
+    <br />
+    class SinatraAsset &lt; Sinatra::Application<br />
+    &nbsp;&nbsp;set :environment, 'production'<br />
+    <br />
+    &nbsp;&nbsp;get '/api/assets/:id' do<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;Asset.find(params[:id]).to_xml<br />
+    &nbsp;&nbsp;end<br />
+    end</code> </p>
+
+    <p>Benchmarking Sinatra produces the following results:<br />
+    Requests per second: 416.61 [#/sec] (mean)</p>
+
+    <p>Wow!  So we've gone from ~230 requests per second using a standard Rails controller action up to over 400 requests per second using Sinatra.  This is obviously a pretty serious speed bump and for really not very much work.</p>
+
+    <p>Finally I tested a Metal endpoint to intercept the same request url.  Once again, Metal endpoints need to be installed in:</p>
+
+    <p><code>RAILS_ROOT/app/metal/metal_asset.rb</code></p>
+    <p><code> 
+    class MetalAsset<br />
+    &nbsp;&nbsp;def self.call(env)<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;url_pattern = /^\/api\/assets\/(\d+)$/<br />
+    <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;if m = env['PATH_INFO'].match(url_pattern)<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asset = Asset.find(m[1])<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ 200, {"Content-Type" =&gt; "text/xml"}, asset.to_xml]<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;else<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ 404, {}, '']<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;end<br />
+    &nbsp;&nbsp;end<br />
+    end
+    </code></p> 
+
+    <p>So Sinatra was fast - how fast is Metal?  Well it's pretty nippy:<br />
+    Requests per second: 522.12 [#/sec] (mean)</p>
+
+    <h3>&raquo; Conclusions</h3> 
+
+    <p>As I mentioned earlier, this is by no means meant to be a through test of how Rails controller actions perform compared to their Sinatra and Metal equivalents, however the numbers are pretty spectacular: a bare Metal endpoint more than doubles the number of requests this application can handle per second.  This is not to say that the Sinatra results weren't pretty damn good too - using Sintara gave an 80% speed boost for this simple API request.</p>
+
+    <p>It seems clear that a significant speed boost can be had by getting down to 'the metal'.  Personally I prefer the clear syntax of Sinatra over the URL regex that Metal requires to achieve the same result, although the additional ~100 requests per second that Metal offers over Sinatra is hard to ignore.</p>
+
+    <p><a href="http://loudthinking.com">David Heinemeier Hansson</a> talked this week about the refactoring that's going on with the Rails routing mechanism for the upcoming Rails 3 release so it's possible that these numbers could significantly change when Rails 3 makes it into the wild.  For now though, if you've got a Rails application with a frequently accessed url, drop in a Sinatra application or a Metal end point and watch it fly!</p>
+    
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
