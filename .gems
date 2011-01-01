@@ -1,4 +1,2 @@
-extensions
 sinatra
-simple_record
-i18n
+active_support

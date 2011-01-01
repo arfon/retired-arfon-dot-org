@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Elastic Load Balancing on EC2 redux</title>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Elastic Load Balancing on EC2 redux</h1>
+    <p>A few months back I <a href="http://arfon.org/elastic_load_balancing_on_ec2/">wrote</a> about how we switched the <a href="http://galaxyzoo.org" target="_blank">Galaxy Zoo</a> HAProxy load balancers to Amazon Web Services (AWS) <a href="http://aws.amazon.com/elasticloadbalancing/" target="_blank">Elastic Load Balancers</a> (ELB).  At that point we had basically just swapped out HAProxy (running on its own EC2 small instance) for an ELB but weren't making any use of the auto-scaling features also on offer.    For the past few days I've been playing around with auto-scaling our API layer with the ELB that's already in place and this morning I pushed the changes into production.</p>
+    <h3>&raquo; Getting started</h3>
+    <p>As I mentioned earlier, we already had an ELB in place so we didn't need to create a new one - instead we're adding here auto-scaling to an ELB that's already in place.  For completeness however, this is the command used to create the original ELB:</p>
+    <p><code>&gt;&gt; elb-create-lb ApiLoadBalancer --zones us-east-1b --listener "lb-port=80, instance-port=80, protocol=TCP" --listener "lb-port=443, instance-port=8443, protocol=TCP"</code></p>
+    <h3>&raquo; De-register existing ELB instances</h3>
+    <p>As we already had a couple of instances registered with the ELB I found the easiest way to get auto-scaling up and running was to remove the existing instances before proceeding:</p>
+    <p><code>&gt;&gt; elb-describe-instance-health ApiLoadBalancer</code> <code>INSTANCE  i-abcdefgh  InService<br /> INSTANCE  i-ijklmnop  InService</code> <code>&gt;&gt; elb-deregister-instances-from-lb -lb ApiLoadBalancer --instances i-abcdefgh i-ijklmnop</code> <code>No Instances currently registered to LoadBalancer</code></p>
+    <h3>&raquo; Create a launch configuration</h3>
+    <p>Before you can introduce auto-scaling you need to have a couple of things in place - an Amazon Machine Image (AMI) that upon boot is immediately ready to serve your application and a launch configuration compatible with your currently ELB-scaled nodes (security groups etc.).  Depending upon your setup, always having an AMI ready to launch with the latest version of your production codebase is probably the hardest thing to achieve here.  Once you have your AMI in place and your security group and key-pair settings to hand you're ready to create your launch configuration:</p>
+    <p><code>&gt;&gt; as-create-launch-config ApiLaunchConfig --image-id ami-myamiid --instance-type m1.small --key ssh_keypair --group "elb security group name"</code> <code>OK-Created launch config</code></p>
+    <h3>&raquo; Create an auto-scaling group</h3>
+    <p>Once you have a launch configuration in place it's time to create an auto-scaling group.  Auto-scaling groups need as a minimum to know what launch configuration, which load-balancer to use, which availability zone and the minimum and maximum to scale to.    We never run the Galaxy Zoo API on anything less than 2 nodes and so to create our auto-scaling group I issued a command something like this:</p>
+    <p><code>&gt;&gt; as-create-auto-scaling-group ApiScalingGroup --launch-configuration ApiLaunchConfig --availability-zones us-east-1b  --min-size 2 --max-size 6 --load-balancers ApiLoadBalancer</code> <code>OK-Created AutoScalingGroup</code></p>
+    <p>At this point it's worth noting that although we'd removed all of the instances being load balanced by the ApiLoadBalancer ELB, because the auto-scaling group set a minimum number of instances of 2 checking the status of the auto-scaling group showed that 2 new instances were spinning up:</p>
+    <p><code>&gt;&gt; as-describe-scaling-activities ApiScalingGroup</code> <code>ACTIVITY  78bf4e0d-f72b-4b5b-a044-6b99942088ed  2009-08-24T07:19:28Z  Successful                                        "At 2009-08-24 07:16:12Z a user request created an AutoScalingGroup changing the desired capacity from 0 to 2.  At 2009-08-24 07:17:17Z an instance was started in response to a difference between desired and actual capacity, increasing the capacity from 0 to 2."</code></p>
+    <p>I don't know about you but I think that's pretty AWESOME!</p>
+    <h3>&raquo; Create some launch triggers</h3>
+    <p>To complete the auto-scaling configuration, you need to define the rules that increase <em>and</em> decrease the number of load-balanced instances.  Currently we have a very simple rule based upon CPU load - if the average CPU load over the past 120 seconds is greater than 60% we introduce a new instance, if the CPU average drops below 20% then we remove an instance:</p>
+    <p><code>&gt;&gt; as-create-or-update-trigger ApiCPUTrigger --auto-scaling-group ApiScalingGroup --namespace "AWS/EC2" --measure CPUUtilization --statistic Average --dimensions "AutoScalingGroupName=ApiScalingGroup" --period 60 --lower-threshold 20 --upper-threshold 60 --lower-breach-increment=-1 --upper-breach-increment 1 --breach-duration 120</code> <code>OK-Created/Updated trigger</code></p>
+    <p>These triggers will almost certainly require refinement but helpfully the <code>as-create-or-update-trigger</code> command will create a new trigger if one doesn't exist or update an existing trigger based upon the new parameters.</p>
+    <h3>&raquo; That's it!</h3>
+    <p>Once again it's been a breeze to introduce the latest <a href="http://aws.amazon.com/" target="_blank">AWS</a> features into our production stack.  Moving <a href="http://galaxyzoo.org" target="_blank">Galaxy Zoo</a> to AWS has completely changed the way we think about running our web applications - we've gone from having a group of 'pet' servers we each know the name of to having a fault-tollerant, auto-scaled web-stack ready for the future.</p>
+    
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>

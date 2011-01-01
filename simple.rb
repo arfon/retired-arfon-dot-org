@@ -1,24 +1,31 @@
 require 'rubygems'
 require 'sinatra'
 require 'erb'
+require 'active_support'
 
 get '/?' do
-  File.read 'views/index.html'
+  erb :index
 end
 
 get '/thesis?' do
   File.read 'views/thesis.html'
 end
 
-get '/autoscaling-on-aws-without-bundling-amis' do
-  File.read 'views/posts/autoscaling-on-aws-without-bundling-amis.html'
+get '/*' do
+  if @post
+    File.read "views/posts/#{@post}.html"
+  else
+    File.read 'views/404.html'
+  end
 end
 
-get '/scaling-galaxy-zoo-with-sqs' do
-  File.read 'views/posts/scaling-galaxy-zoo-with-sqs.html'
+before do
+  files = Dir.glob('views/posts/*.html')
+  @posts = files.collect { |f| f.gsub('views/posts/', '').split('.').first }
+  requested = request.path_info.gsub('/', '')
+  @posts.each do |post|
+    if post == requested
+      @post = post
+    end
+  end
 end
-
-get '/a-first-look-at-the-amazon-relational-database-service' do
-  File.read 'views/posts/a-first-look-at-the-amazon-relational-database-service.html'
-end
-

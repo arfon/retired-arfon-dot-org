@@ -19,9 +19,9 @@
     <h3>Recent Musings</h3>
     <p>
       <ul>
-        <li><a href="http://arfon.org/autoscaling-on-aws-without-bundling-amis" title="Autoscaling on AWS Without Bundling AMIs">Autoscaling on AWS Without Bundling AMIs</a></li>
-        <li><a href="http://arfon.org/scaling-galaxy-zoo-with-sqs" title="Scaling Galaxy Zoo With SQS">Scaling Galaxy Zoo With SQS</a></li>
-        <li><a href="http://arfon.org/a-first-look-at-the-amazon-relational-database-service" title="A First Look at the Amazon Relational Database Service">A First Look at the Amazon Relational Database Service</a></li>
+        <% @posts.each do |post| %>
+          <li><a href="/<%= post %>"><%= post.titleize %></a></li>
+        <% end %>
       </ul>
     </p>
   </div>

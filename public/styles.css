@@ -18,7 +18,11 @@ h3{
 	font-size:1.3em;
 }
 
-p, ul, ul li, ol, ol li{
+p, ul, ul li, ol, ol li, blockquote{
 	font-family:helvetica, arial, sans-serif;
 	font-size:1em;
+}
+
+blockquote{
+	font-size:0.9em;
 }
