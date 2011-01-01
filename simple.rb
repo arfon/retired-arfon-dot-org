@@ -14,3 +14,7 @@ get '/autoscaling-on-aws-without-bundling-amis' do
   erb 'posts/autoscaling-on-aws-without-bundling-amis'.to_sym
 end
 
+get '/scaling-galaxy-zoo-with-sqs' do
+  erb 'posts/scaling-galaxy-zoo-with-sqs'.to_sym
+end
+
