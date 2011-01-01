@@ -18,3 +18,7 @@ get '/scaling-galaxy-zoo-with-sqs' do
   erb 'posts/scaling-galaxy-zoo-with-sqs'.to_sym
 end
 
+get '/a-first-look-at-the-amazon-relational-database-service' do
+  erb 'posts/a-first-look-at-the-amazon-relational-database-service'.to_sym
+end
+
