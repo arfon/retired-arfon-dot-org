@@ -3,6 +3,14 @@
   margin:40px auto;
 }
 
+#header{
+	
+}
+
+#header p{
+	font-size:0.8em;
+}
+
 h1{
 	font-family:Georgia, serif;
 	font-weight:lighter;
@@ -16,5 +24,5 @@ h3{
 
 p{
 	font-family:helvetica, arial, sans-serif;
-	font-size:14px;
+	font-size:1em;
 }

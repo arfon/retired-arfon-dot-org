@@ -11,6 +11,9 @@
 
 <body>
   <div id="centre">
+    <div id="header">
+      <p><a href="http://arfon.org">&larr; Back</a></p>
+    </div>
     <h1>Scaling Galaxy Zoo With SQS</h1>
     <p>Over the last 8 months we've received close to <a href="http://galaxyzoo.org/zoonometer">45 million</a> classification clicks from the fantastic <a href="http://galaxyzoo.org">Galaxy Zoo</a> community.  Averaged over the 8 months that's roughly 8,000 clicks per hour - not bad going!    The challenge for our development team has been to design a web stack that's able to cope with big traffic spikes like the one we had earlier this week from <a href="http://apod.nasa.gov/apod/ap091026.html">APOD</a> but to also keep the hosting costs reasonably low.  As I've <a href="http://arfon.org/surviving_the_flood/">mentioned before</a>, the pricing model of <a href="http://aws.amazon.com">Amazon Web Services</a> means that we can scale our web and API layers based on how busy we are however what's not so straightforward is scaling the database layer in realtime.</p>
     <h3>&raquo; The Problem</h3>
