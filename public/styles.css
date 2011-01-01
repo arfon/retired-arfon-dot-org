@@ -8,6 +8,12 @@ h1{
 	font-weight:lighter;
 }
 
+h3{
+	font-family:Georgia, serif;
+	font-weight:lighter;
+	font-size:1.3em;
+}
+
 p{
 	font-family:helvetica, arial, sans-serif;
 	font-size:14px;
