@@ -3,22 +3,22 @@ require 'sinatra'
 require 'erb'
 
 get '/?' do
-  erb :index
+  File.read 'views/index.html'
 end
 
 get '/thesis?' do
-  erb :thesis
+  File.read 'views/thesis.html'
 end
 
 get '/autoscaling-on-aws-without-bundling-amis' do
-  erb 'posts/autoscaling-on-aws-without-bundling-amis'.to_sym
+  File.read 'views/posts/autoscaling-on-aws-without-bundling-amis.html'
 end
 
 get '/scaling-galaxy-zoo-with-sqs' do
-  erb 'posts/scaling-galaxy-zoo-with-sqs'.to_sym
+  File.read 'views/posts/scaling-galaxy-zoo-with-sqs.html'
 end
 
 get '/a-first-look-at-the-amazon-relational-database-service' do
-  erb 'posts/a-first-look-at-the-amazon-relational-database-service'.to_sym
+  File.read 'views/posts/a-first-look-at-the-amazon-relational-database-service.html'
 end
 
