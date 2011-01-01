@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'sinatra'
 require 'erb'
-require 'active_support'
+require 'activesupport'
 
 get '/?' do
   erb :index
