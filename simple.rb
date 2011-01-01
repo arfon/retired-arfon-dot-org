@@ -1,5 +1,5 @@
+require 'rubygems'
 require 'sinatra'
-require 'erb'
 require 'active_support'
 
 get '/?' do
