@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'active_support'
+require 'titleize'
 require 'sinatra'
 require 'erb'
 
