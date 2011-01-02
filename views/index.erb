@@ -16,11 +16,11 @@
     
     <br />
     
-    <h3>Recent Musings</h3>
+    <h3>Musings</h3>
     <p>
       <ul>
         <% @posts.each do |post| %>
-          <li><a href="/<%= post.downcase %>"><%= post.gsub('-', ' ') %></a></li>
+          <li><a href="/<%= post.raw_title.downcase %>"><%= post.title %></a> <span class="posted">(<%= post.formatted_posted_at %>)</span></li>
         <% end %>
       </ul>
     </p>

@@ -26,3 +26,8 @@ p, ul, ul li, ol, ol li, blockquote{
 blockquote{
 	font-size:0.9em;
 }
+
+.posted{
+	font-size: 0.9em;
+	font-style: italic;*/
+}
