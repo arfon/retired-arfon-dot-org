@@ -53,7 +53,7 @@ before do
   
   requested = request.path_info.gsub('/', '')
   @posts.each do |post|
-    if post.raw_title.downcase == requested
+    if post.raw_title.downcase == requested || post.raw_title.downcase.gsub('-', '_') == requested
       @post = post
     end
   end
