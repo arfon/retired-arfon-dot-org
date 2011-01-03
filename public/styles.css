@@ -1,6 +1,8 @@
 #centre{
 	width:900px;
   margin:40px auto;
+	background: 150px 0px url('arfon.png') no-repeat;
+	min-height:600px;
 }
 
 #header{
