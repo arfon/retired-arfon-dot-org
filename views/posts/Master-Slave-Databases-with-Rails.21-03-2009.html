@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Master/Slave Databases with Rails</title>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Master/Slave Databases with Rails</h1>
+    <p>Getting ActiveRecord to talk to multiple databases is easier than you might think. &nbsp;It's possible to override the connection settings in database.yml at the model level by doing something like:</p>
+    <p><code> establish_connection(<br />   :adapter  =&gt; "mysql",<br />   :host     =&gt; "localhost",<br />   :username =&gt; "myuser",<br />   :password =&gt; "mypass",<br />   :database =&gt; "somedatabase"   )</code></p>
+    <p>Calling the <code>establish_connection</code> method at the model level simply overrides the ActiveRecord connection object for the local model.  At <a href="http://galaxyzoo.org">Galaxy Zoo</a> we needed to do something a little different: initially we were write dominated at the database layer - 16 million classifications in the last month peaking at about 50 classifications per second on launch day.  However as things have settled down and we've been adding more user-centric features to the Galaxy Zoo site, we've been finding that a significant amount of out database load has been coming from more complicated queries (reads) rather than lots of writes.  An ideal solution for a situation like this is to introduce some kind of <a href="http://dev.mysql.com/doc/refman/5.1/en/replication.html">MySQL replication</a> thus distributing the load across multiple databases.  Rather than introducing the complexity of offset primary keys in a Master/Master configuration we've opted for a standard MySQL Master/Slave configuration sending the writes to the Master and reads to the Slave.  But how to accomplish this with ActiveRecord?</p>
+    <h3>&raquo; Enter Masochism</h3>
+    <p><a href="http://github.com/technoweenie/masochism/tree/master">Masochism</a> is a Rails plugin by Rails core team's technoweenie (Rick Olson).  It works by overriding the ActiveRecord <code>connection</code> object with <code>ConnectionProxy</code> that (by default) sends writes to the Master MySQL database and reads to the Slave.  We've been running in production now for about 2 weeks using Masochism and so far there's not much to say other than it works!</p>
+      <center><img src="http://arfon.org.s3.amazonaws.com/master-slave.png" /></center>
+      <p>We've made a couple of optimisations along the way after examining the production logs:  When writing a classification to the database there's a couple of writes, then some reads, then some writes...  In the log you see something like this:</p>
+    <p><code>Switching to Master <br />Switching to Slave <br />Switching to Master<br /> Switching to Slave<br /> Switching to Master<br /> Switching to Slave </code></p>
+    <p>Obviously this switching between the Master and Slave database repeatedly in the same method call is less than ideal.  Thankfully it's possible to override the database so that within the method only one of the databases is used:</p>
+    <p><code>around_filter ActiveReload::MasterFilter, :only =&gt; [:create]</code></p>
+    <p>Masochism is a nice solution to a common problem - using ActiveRecord in a replicated database environment.  I can already see us outgrowing Masochism - specifically it doesn't support multiple slave databases which is a shame.  When that day comes we'll no doubt look to an alternative such as FiveRuns' <a href="http://github.com/fiveruns/data_fabric/tree/master">DataFabric</a> or <a href="http://forge.mysql.com/wiki/MySQL_Proxy">MySQL Proxy</a>.  But for now, Masochism works, and I can highly recommend it.</p>
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>

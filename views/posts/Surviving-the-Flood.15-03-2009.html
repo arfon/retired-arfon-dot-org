@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Surviving the Flood</title>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Surviving the Flood</h1>
+    
+    <p>It's been nearly a month now since the launch of <a href="http://galaxyzoo.org" title="Galaxy Zoo" target="_blank">Galaxy Zoo 2</a> and with close to 15 million classifications the volume of traffic has exceeded even our wildest expectations.</p>
+
+    <p>I joined the Galaxy Zoo team in January this year and in the six weeks before launch worked pretty much non-stop to re-implement the Galaxy Zoo 2 beta site in <a href="http://rubyonrails.org" title="Rails" target="_blank">Rails</a> as well as write a web service to capture back the results.  Now I know it's almost always best to avoid the big rewrite but we had many good reasons for moving away from the old infrastructure and codebase.</p>
+
+    <p>The original Galaxy Zoo project was really an accidental success - the team had no idea that what they had created would become so popular so quickly and the story of the melting web server is Zoo folklore these days.  With this in mind we were keen for a smooth launch of Zoo 2.</p>
+
+    <p>I think one of the most significant moves we made for the launch was to host the new Galaxy Zoo website and API on <a href="http://aws.amazon.com" title="Amazon Web Services" target="_blank">Amazon Web Services</a> (AWS).  AWS has a pay by the hour pricing model which was perfect for our very public launch.  Below is a diagram of the production web stack we were running on for launch day.  Blue (LB) nodes are <a href="http://haproxy.1wt.eu/">HAProxy</a> load balancers (one for the web nodes and one for the API nodes).  Pink (WEB) nodes are serving up the Galaxy Zoo website, yellow (API) nodes are running the API backend of the Galaxy Zoo site (serving up images, capturing back classifications) and finally the green/white nodes are the MySQL Master/Slave databases.</p>
+
+    <p>All nodes were EC2 'small' instances running Ubuntu Hardy (8.04), Apache with <a href="http://www.modrails.com/" title="Passenger" target="_blank">Phusion Passenger </a>and deployed using <a href="http://www.capify.org/" target="_blank">Capistrano</a> and <a href="http://github.com/mza/vehicle-assembly/tree/master" title="Vehicle Assembly by the MZA">Vehicle Assembly</a>.</p>
+  
+    <center><img src="http://arfon.org.s3.amazonaws.com/stack.png" /></center>
+
+    <p>So on the morning of launch we were running a stack of 14 servers - two load balancers, 5 web nodes, 5 API nodes and a database layer.  Because AWS makes it so easy, we we're also taking hourly <a href="http://aws.amazon.com/ebs/" target="_blank">EBS</a> snapshots of the database stored in <a href="http://aws.amazon.com/s3/" target="_blank">S3</a>.</p>
+
+    <p>This setup kept us going for about the first hour until <a href="http://chrislintott.net" title="Chris Lintott" target="_blank">Chris </a>appeared on BBC breakfast and the web traffic went through the roof.  Thanks to some <a href="http://github.com/mza/vehicle-assembly/tree/master" title="Vehicle Assembly by the MZA">seriously smart</a> auto-bootstrapping of AWS EC2 nodes we were able to easily scale the web layer to 10 servers to handle the load, combined with a more beefy MySQL AWS instance and some on-the-fly code optimisations we managed to keep the site up.</p>
+
+    <p>I've been lucky enough to work on some big Rails projects in the past but this was my first experience of Rails in a high-traffic environment.  If I had to do the launch again would I do anything different?  Sure.  Could we have done with some more time to test the production stack?  Definitely.  But we survived the flood and I can't wait for the next big launch...</p>
+
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
