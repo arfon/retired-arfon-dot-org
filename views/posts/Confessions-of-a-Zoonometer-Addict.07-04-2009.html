@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Autoscaling on AWS Without Bundling AMIs</title>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Confessions of a Zoonometer&trade; Addict</h1>
+    <p>Last week at <a href="http://galaxyzoo.org" target="_blank">Galaxy Zoo</a> as part of the <a href="http://www.100hoursofastronomy.org/" target="_blank">100 hours of Astronomy</a> we challenged the Zooites to do 1 million clicks in 100 hours - a big challenge.  In the week before the 100 hours we'd received about 1 million clicks so although the challenge of reaching 1 million was a big one but it seemed perfectly realistic.  I don't know about everyone else but I couldn't stop refreshing the Galaxy Zoo homepage to check on the latest total.  In the end we reached our goal of 1 million clicks about 12:45pm on the Saturday a mere 72 hours into the challenge!</p>
+
+    <center><img src="http://arfon.org.s3.amazonaws.com/zoonometer.jpg" /></center>
+
+    <h3>&raquo; 1.45 million clicks in 100 hours</h3> 
+
+    <p>I wondered what would happen once we'd reached 1 million - would people stop classifying?  Absolutely not!  In the final 28 hours we added a further 450,000 clicks to the Zoonometer&trade; total reaching a grand total of 1.45 million clicks in 100 hours...  <strong>Or did we?</strong></p>
+
+    <h3>&raquo; What the Zoonometer&trade; should have been reading</h3> 
+    As I mentioned earlier, in the week before the 100 hours challenge we'd had about 1 million clicks and so with all the extra publicity surrounding the 100 hours of Astronomy I was secretly hoping that we might get closer to 2 million clicks.  It turns out we did...
+
+    <p>When writing the code for the Zoonometer&trade; I had to make a few changes to the Galaxy Zoo website and API.  Without really thinking I decided that rather than count the total number of clicks each time we wanted to update the Zoonometer&trade; (a MySQL query that takes about 6 seconds) I'd keep the total as a separate counter.  Each time someone classified a galaxy I'd add 1 to the total and this way the current total could be checked very quickly and so we could update the Zoonometer&trade; more frequently.</p>
+
+    <p>What a great idea Arfon!  Erm no...  It turns that this was a <strong>really bad idea</strong> and here's why.</p>
+
+    <p>In the API we have a Project and Classification model.  The Project has_many classifications and so I was keeping a counter column on the Galaxy Zoo project entry.  In the code I had something like this as an after_create callback on the Classification model:</p>
+
+    <p><code>def update_counter<br />
+    &nbsp;&nbsp;self.project.classification_count = self.project.classification_count + 1<br />
+    &nbsp;&nbsp;self.project.save<br />
+    end</code> </p>
+
+    <p>Simple right?  When a classification comes in, add one to the project total and keep going.  I had tests, the method worked, everything looked peachy.  What I didn't consider is what happens when you're getting 30-40 classifications <em>per second</em>.  Let's consider what happens when two (or more) classifications are processed simultaneously.  If the database is very busy then it's possible that in the time it takes to create the classifications, when both after_create callbacks run the classification_count column on the project is the same.  That is, if both callbacks get a value of 1000 for the current project classification_count then <em>they are both going to update to the new value of 1001</em>.  Oh dear.</p>
+
+    <p>So what does this mean?  Well the bad news is that the Zoonometer&trade; was reporting the <strong>wrong total</strong>.  The great news is that we didn't record 1.45 million clicks in the 100 hours of Astronomy, we actually had <strong>2,617,570</strong>!  Yes you heard me, that's:</p>
+    
+    <center><img src="http://arfon.org.s3.amazonaws.com/big_number.jpg" /></center>
+
+    <p>Turns out that Zoonometer&trade; was a little off the mark...</p>
+
+    <h3>&raquo; A retrospective</h3> 
+    <p>So 2,617,570 not 1,450,000 clicks?  Pretty impressive stuff.  I <em>knew</em> we were busier than the Zoonometer&trade; was reporting, I just couldn't figure out why it wasn't counting properly!  2,617,570 is an amazing number to have reached in just 100 hours and I'd like to thank all the people who worked so hard to help us reach this total.</p>
+
+    <p>I'm putting this down to experience.  To be honest I've never worked on a project quite so popular as Galaxy Zoo and problems like this only arise in very busy environments such as ours.  When we next have to bring out the Zoonometer&trade; you can be assured of an accurate total!</p>  
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
