@@ -1,8 +1,30 @@
 require 'rubygems'
 require 'sinatra'
 require 'erb'
+require 'crack'
+require 'open-uri'
 require 'hashie'
 require 'date'
+
+class Tweet < Hashie::Dash
+  property :id
+  property :text
+  property :date
+  
+  def url
+    "http://twitter.com/arfon/status/#{self.id}"
+  end
+  
+  def self.parse_recent_tweets
+    begin
+      file = open('http://twitter.com/statuses/user_timeline/617243.json')
+      parsed = Crack::JSON.parse(file.read).slice(0,5)
+      parsed.collect { |p| Tweet.new(:id => p['id'], :text => p['text'], :date => DateTime.parse(p['created_at']))}
+    rescue
+      return false
+    end
+  end
+end
 
 class Post < Hashie::Dash
   property :raw_title
@@ -26,6 +48,7 @@ class Post < Hashie::Dash
 end
 
 get '/?' do
+  @tweets = Tweet.parse_recent_tweets
   erb :index
 end
 
@@ -42,6 +65,7 @@ get '/*' do
 end
 
 before do
+  response.headers['Cache-Control'] = 'public, max-age=300'
   files = Dir.glob('views/posts/*.html')
   @posts = []
   files.each do |file|
