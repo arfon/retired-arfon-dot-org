@@ -15,7 +15,6 @@ class Tweet < Hashie::Dash
     "http://twitter.com/arfon/status/#{self.id}"
   end
   
-  
   def self.parse_recent_tweets
     begin
       file = open('http://twitter.com/statuses/user_timeline/617243.json')
