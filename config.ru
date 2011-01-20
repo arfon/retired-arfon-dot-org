@@ -1,2 +1,2 @@
-require 'simple'
+require 'frank'
 run Sinatra::Application

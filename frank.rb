@@ -59,7 +59,8 @@ get '/*' do
   if @post
     File.read @post.file_name
   else
-    File.read 'views/404.html'
+    status 404
+    File.read 'views/404.html' 
   end
 end
 
