@@ -1,10 +1,4 @@
-require 'rubygems'
-require 'sinatra'
-require 'erb'
-require 'crack'
-require 'open-uri'
-require 'hashie'
-require 'date'
+%w{rubygems sinatra erb crack open-uri hashie date}.each { |dep| require dep }
 
 class Tweet < Hashie::Dash
   property :id
@@ -45,6 +39,11 @@ class Post < Hashie::Dash
   def formatted_posted_at
     self.posted_at.strftime('%d %B %Y')
   end
+  
+  def url_matches?(requested)
+    # need the second condition because of my previous love affair with hyphens
+    self.raw_title.downcase == requested || self.raw_title.downcase.gsub('-', '_') == requested
+  end
 end
 
 get '/?' do
@@ -64,7 +63,9 @@ get '/*' do
   end
 end
 
+# this method looks at all of the static HTML files in 'views/posts' and checks if the URL being requested matches any of the files
 before do
+  # cache views for 5 minutes (Heroku Varnish cache that is)
   response.headers['Cache-Control'] = 'public, max-age=300'
   files = Dir.glob('views/posts/*.html')
   @posts = []
@@ -77,7 +78,7 @@ before do
   
   requested = request.path_info.gsub('/', '')
   @posts.each do |post|
-    if post.raw_title.downcase == requested || post.raw_title.downcase.gsub('-', '_') == requested
+    if post.url_matches?(requested)
       @post = post
     end
   end
