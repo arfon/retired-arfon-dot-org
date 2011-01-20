@@ -9,9 +9,9 @@ class Tweet < Hashie::Dash
     "http://twitter.com/arfon/status/#{self.id}"
   end
   
-  def self.parse_recent_tweets
+  def self.parse_recent_tweets(file = nil)
     begin
-      file = open('http://twitter.com/statuses/user_timeline/617243.json')
+      file = open('http://twitter.com/statuses/user_timeline/617243.json') unless file
       parsed = Crack::JSON.parse(file.read).slice(0,5)
       parsed.collect { |p| Tweet.new(:id => p['id'], :text => p['text'], :date => DateTime.parse(p['created_at']))}
     rescue
