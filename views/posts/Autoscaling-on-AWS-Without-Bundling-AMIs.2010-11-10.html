@@ -30,7 +30,7 @@
     <p>So that not might look like a big deal but the secret sauce is what happens when the machine reboots.  There's a simple script that executes on boot to pull down the latest bundle of the production code from S3 put it in the correct place and <em>voila</em>, you're running the latest version of the code.  We use <a href="https://github.com/capistrano/capistrano" target="_blank">Capistrano</a> for on-the-fly deployment and so it's important that this script doesn't get in the way of that - upon downloading a new bundle of the code the script timestamps the new 'release' and symlinks the config files and 'current' directory.  That way, if we need to we can still cap deploy a hotfix to a running server.</p>
     <h3>&raquo; Show me the code already!</h3>
     <p>The capistrano task used here is super-simple and can, I'm sure be further improved.  Below is the example for our latest project <a href="http://www.oldweather.org" target="_blank">Old Weather</a>.</p>
-    <p><script src="https://gist.github.com/670859.js"></script></p>
+    <p><script src="https://gist.github.com/670859.js" type="text/javascript"></script></p>
     <h3>&raquo; A small but significant change</h3>
     <p>There's nothing like showing someone new your current deployment process to realise where the pain points are.  Credit here has to go to to Zooniverse developer <a href="http://orbitingfrog.com" target="_blank">Robert Simpson</a> here for patiently watching me run through the old process and kicking me to make it easier.</p>
     
