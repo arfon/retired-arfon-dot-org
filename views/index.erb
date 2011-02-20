@@ -51,13 +51,11 @@
     <br />
     
     <h3>Musings</h3>
-    <p>
-      <ul>
-        <% @posts.each do |post| %>
-          <li><a href="/<%= post.raw_title.downcase %>"><%= post.title %></a> <span class="posted">(<%= post.formatted_posted_at %>)</span></li>
-        <% end %>
-      </ul>
-    </p>
+    <ul>
+      <% @posts.each do |post| %>
+        <li><a href="/<%= post.raw_title.downcase %>"><%= post.title %></a> <span class="posted">(<%= post.formatted_posted_at %>)</span></li>
+      <% end %>
+    </ul>
   </div>
   <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
   </script>
