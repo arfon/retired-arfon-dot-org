@@ -6,7 +6,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
 	<title>Weakly Typed - Autoscaling on AWS Without Bundling AMIs</title>
-  <link href='styles.css' rel='stylesheet' type='text/css'>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
 </head>
 
 <body>
@@ -16,7 +16,7 @@
     </div>
     <h1>Autoscaling on AWS Without Bundling AMIs</h1>
     <p>At <a href="http://www-astro.physics.ox.ac.uk/" target="_blank">Zooniverse HQ</a> we typically run between 15 and 20 AWS instances to support our current set of projects.  It's a mix of fairly vanilla Apache/Rails webservers, AWS <a href="http://aws.amazon.com/rds/" target="_blank">RDS</a> MySQL instances, a couple of LAMP machines and a bit of MongoDB goodness for kicks.  Over the past year we've migrated pretty much all of our infrastructure to make full use of the AWS toolset including <a href="http://aws.amazon.com/elasticloadbalancing/" target="_blank">elastic load balancing</a> and <a href="http://aws.amazon.com/autoscaling/" target="_blank">auto-scaling</a> our web and API tiers, <a href="http://aws.amazon.com/sqs/" target="_blank">SQS</a> for asynchronous processing of requests and <a href="http://aws.amazon.com/rds/" target="_blank">RDS</a> for our database layer.  Overall I'm pretty happy with the setup but one pain point in the deployment process has always been the bundling of AMIs for auto-scaling.  I've <a href="http://arfon.org/elastic-load-balancing-on-ec2-redux/" target="_blank">described before</a> the basic configuration required when setting up an auto-scaling group - the step that always takes the most time is saving out a machine image with the latest version of the production code so that when the group scales the machine is ready to go.    The problem is that for a typical deploy, the changes to the code are minimal and really don't require a new machine image to be built, rather we just need to be sure that when the machine boots it's serving the latest version of the application code.  Over the past few months I've considered a number of different options for streamlining this process, the best of which being an automated checkout of the latest code from version control when the machine boots.  This is all very well but we host our code at <a href="https://github.com/" target="_blank">GitHub</a>.  Now don't get me wrong, I love their service but I really don't want to build in a dependency of GitHub for our auto-scaling.</p>
-    <h3>&raquo; An alternative?</span></h3>
+    <h3>&raquo; An alternative?</h3>
     <p>A couple of weeks ago we made a change to the way that we deploy our applications and I can honestly say it's been a revolution. The basic flow is this:</p>
     <ol>
     <li>Work on new feature, finish up and commit (don't forget to run your tests)</li>
