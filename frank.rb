@@ -9,7 +9,7 @@ class Tweet < Hashie::Dash
     "http://twitter.com/arfon/status/#{self.id}"
   end
   
-  def self.parse_recent_tweets(file = nil)
+  def self.parse_recent_tweets(file=nil)
     begin
       file = open('http://twitter.com/statuses/user_timeline/617243.json') unless file
       parsed = Crack::JSON.parse(file.read).slice(0,5)
@@ -68,6 +68,7 @@ end
 before do
   # cache views for 5 minutes (Heroku Varnish cache that is)
   response.headers['Cache-Control'] = 'public, max-age=300'
+  # build list of posts from 
   files = Dir.glob('views/posts/*.html')
   @posts = []
   files.each do |file|

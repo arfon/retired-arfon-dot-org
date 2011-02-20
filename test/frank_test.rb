@@ -1,4 +1,4 @@
-require 'frank'
+require File.expand_path('../../frank', __FILE__)
 require 'test/unit'
 require 'rack/test'
 
