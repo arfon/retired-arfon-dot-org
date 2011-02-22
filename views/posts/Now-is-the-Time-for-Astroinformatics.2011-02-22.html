@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Now is the Time for Astroinformatics</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Now is the Time for Astroinformatics</h1>
+		<p class="preface">What follows has been bouncing around in my head for about a year now; I've decided to write it down finally after hearing reports of Alex Szalay's talk here in Oxford (sadly I was away) and seeing this <a href="http://arxiv.org/abs/1012.4119" target="_blank">recent paper</a> on the arXiv. My apologies if this is a little too much about me, I promise not to do this too often.</p>
+		
+		<h3>&raquo; Nottingham <i>circa</i> 2002</h3>
+		<p>In late 2002 I began my PhD at <a href="http://www.nottingham.ac.uk">The University of Nottingham</a> in the Astrochemistry group. Like many new PhD students, it wasn't entirely clear to me before I arrived exactly which project I'd be working on but I arrived full of enthusiasm and looking forward to applying my understanding of Chemistry to the Cosmos. To be honest though I had little idea what a PhD entailed and after the standard <i>'go away and read these 50 papers about subject xxxx'</i> I found myself needing to look through and match a large number of infrared sources from the IRAS and 2MASS catalogues.</p>
+		<p>After two days of manually going through the objects I realised there had to be a better way and that I should probably write a 'program' to go through the candidate list more rapidly. Following a lunchtime chat with one of the older PhD students I duly picked up a copy of a C programming book and spent the rest of the week writing about 40 lines of C code (yeah, not very impressive, I know).</p>
+		<p>Over the next year this small C program became a complete monster. Hundreds or even thousands of lines of buggy, repetitive undocumented code that on a good day seemed to produce answers that looked reasonable and on a bad day took me all morning to spot the smallest typo. Having a single copy of this program would have been bad enough but I had about 50 different versions, each very slightly different and with its own bugs. I can honestly say that I lost well over a month of my (PhD) life debugging just that one piece of code; I'd rather not think about how much time in total I spent debugging <i>something</i>.</p>
+		
+		<h3>&raquo; Not Unusual</h3>
+		<p>Was my experience as a new PhD student unusual? No. At the time I saw a number of my peers having exactly the same experience and I see it still today with the new students here in Oxford. Most students' first experience of programming is to either to inherit a existing codebase that's probably just as buggy as my IR source matcher or to write something from scratch that solves an immediate problem with their research. Either way, it's highly unlikely that they have any formal training in how to go about writing readable, efficient, maintainable code.</p>
+		
+		<p>So with all of this terrible code being written, how on Earth do we ever get PhDs? I think the short version is that <em>we muddle through.</em> Students are smart enough to pick up a programming book and relatively quickly code up a solution, or to learn a new language by the trial and error editing of an existing script.</p>
+		
+		<p>But this trial and error style of coding is exactly the problem. At no point in the process is any real attention paid to how to code is written and to be honest, why should it? I don't recall being asked about my test coverage during my viva defence let alone having regular code reviews with my supervisor.</p>
+		
+		<blockquote class="statement">The truth is that for the majority of researchers the process of software development stops the very instant they believe their code is doing what they expected.</blockquote>
+		
+		<h3>&raquo; Future Nottingham <i>circa</i> 2022</h3>
+		<p>With your permission, I'm going to time-travel roughly 10 years into the future. A PhD student has just begun their PhD and they've been asked by their supervisor to look for radio sources with particular characteristics in a data cube from the Square Kilometre Array telescope<sup>1</sup>. In theory this is fine, they just need to step through the dataset by position and frequency searching for matches except that the data cube that they need to process is many hundreds of terabytes in size.</p>
+			
+		<p>Faced with this formidable task the student would hopefully realise that the problem can be solved relatively easily in parallel by splitting up the date cube into many millions of smaller chunks. This means that the challenge faced by the student isn't just to figure out what code to write to search for sources within each sub-cube but also to write a whole load of job management code to chunk up the cube and farm out these bite-sized searches. They'd also hopefully have heard of the <a href="http://labs.google.com/papers/mapreduce.html" target="_blank">MapReduce</a> programming model and realise that the <a href="http://hadoop.apache.org/mapreduce/" target="_blank">Hadoop</a> project solved for exactly this kind of problem and that they didn't need to reinvent the wheel for their studies. <em>Hopefully</em>.</p> 
+			
+		<p>The more likely reality is that because they didn't have a computer science background they'd spend a huge amount of time writing run-once custom scripts that took days/weeks/months to run or worse still conclude that searching to this fidelity at such scale was impossible.</p>
+		
+		<blockquote class="statement">I believe in the next decade there's a real possibility that the pace of research within astrophysics is going to be severely limited by the lack of awareness amongst researchers of modern approaches to data-intensive computation.</blockquote>
+		
+		<h3>&raquo; Informatics for Astrophysics</h3>
+		<p>After completing my PhD in 2006 I worked in the Production Software Team at the <a href="http://www.sanger.ac.uk/" target="_blank">Wellcome Trust Sanger Institute</a> building high-throughput software to manage the sequencing of DNA samples. Working here taught me two key things:</p>
+		
+		<ol>
+			<li>How to write high-quality, production-grade software. </li>
+			<li>That the biosciences are well ahead of astronomers when it comes to building software for science.</li>
+		</ol>
+		
+		<p>Biologists are ahead of astrophysicists because they've realised that working with large quantities of biological data is a research specialism in itself. Between the Sanger Institute and the <a href="http://www.ebi.ac.uk/" target="_blank">European Bioinformatics Institute</a> (on the same site) there are probably ~ 300 <em>bioinformaticians</em> on campus. That's 300 people who's expertise is not in pure genomics research, rather they are world leaders at understanding how to produce, store and analyse biological data.</p>
+		
+		<p>It's not that within the astronomy community as a whole there aren't people developing high-quality software or using modern toolsets to solve common problems (see e.g. <a href="http://arxiv.org/abs/1010.1015" target="_blank">Wiley et al.</a>), quite the opposite. The problem is that the efforts of these researchers are not widely recognised as an academic specialism. Until we as a community (and that means funding bodies too) recognise and  value the research and development efforts of researchers building new tools then we are unlikely to see any significant advances.</p>
+		
+		<blockquote class="statement">We need to stop relying on occasional gems of brilliance by individual researchers and move to a fully-fledged research area that combines astrophysics with data-intensive computer science.</blockquote>
+		
+		<h3>&raquo; Building for the Future</h3>
+		<p>In the next decade, astronomers are likely to face data rates of unprecedented volumes from both the <a href="http://www.lsst.org/" target="_blank">Large Synoptic Sky Telescope</a> and the <a href="http://www.skatelescope.org/" target="_blank">Square Kilometre Array</a>. If the current situation continues then I think we're going to have serious problems as a community storing, analysing and sharing the data products from these facilities.</p>
+		
+		<p>All is not lost however. There are concrete steps that we start to take today that will improve our chances of developing smart solutions in the future:</p>
+
+		<ol>
+			<li><strong>Train our students:</strong> We need to start teaching new undergraduates (and postgraduates) about the fundamentals of software development best practices. That means learning about (and using) version control, understanding how to structure code and writing tests to cover core functionality<sup>2</sup>.</li>
+			<li><strong>Build for reuse and share:</strong> We need to stop writing run-once 'scripts' and start building 'software' for reuse. Sharing code with others is a good way to encourage improvements in code quality.</li>
+			<li><strong>Recognise advances in other fields:</strong> Astronomers are not unique in experiencing the 'data flood'. Recognising innovation and advances in techniques for data processing in other fields (e.g. the biosciences) will be crucial.</li>
+			<li><strong>Value informatics:</strong> Recognising and <em>funding</em> astroinformatics as a research specialism in its own right is vital for success. That means having more meetings like <a href="http://www.astro.caltech.edu/ai10/" target="_blank">this one</a> and funding research programmes aimed at developing innovative solutions that solve real problems.</li>
+		</ol>
+		
+		<p>I believe astroinformatics has a bright future. The old adage <em>'innovate or die'</em> seems to be a pretty good fit here. Many of the solutions for tomorrow's astrophysical data problems are already available in other research areas or industry, I just hope that we as a community can begin to recognise the advantages of devoting time and effort into exploring these possibilities.</p>
+				
+		<p class="footnote">1. The <a href="http://www.skatelescope.org/" target="_blank">SKA</a> is going to be massive. Data products from it are going to be rather large and unwieldy.<br />
+		2. I'm not going to turn this into an essay about how to write better software. There are plenty of <a href="http://www.amazon.co.uk/Test-Driven-Development-Addison-Wesley-Signature/dp/0321146530/ref=sr_1_1?ie=UTF8&qid=1298297818&sr=8-1" target="_blank">books</a>/<a href="http://cleancoder.posterous.com/" target="_blank">blogs</a>/<a href="http://qconlondon.com/" target="_blank">conferences</a> that can help you with that.</p>
+		
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
