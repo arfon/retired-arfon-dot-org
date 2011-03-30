@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Six Months With New Relic RPM</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Six Months With New Relic RPM</h1>
+
+		<p>Thanks to the fantastic sponsorship programme at <a href="http://newrelic.com/" target="_blank">New Relic</a>, over the past 6 months we've had RPM deployed on all of the Zooniverse web applications.</p>
+
+    <p>Before joining Galaxy Zoo and the Zooniverse I'd used RPM a on a relatively low-traffic website personal project and while I could see value in the toolset, the Rails application I had built was so basic that there were very few significant optimisations to be made. Wind the clock forward to late 2010 and things were very different...</p>
+    
+		<h3>&raquo; 2010: The year of the Zooniverse</h3>
+		
+		<p>2010 was a pretty busy year for the Zooniverse. We moved from having a relatively small number of projects that all shared very similar technologies and were built by a very small number of developers to welcoming aboard new talent in our team and embarking on far more ambitious projects from a technical standpoint.</p>
+
+    <p>Probably the most significant of these in terms of technological innovation was our climate data-rescue effort <a href="http://www.oldweather.org" target="_blank">Old Weather</a>. Old Weather was exciting from a technical standpoint as we made the mental leap in the team that transcribing content from a digital image was not the same as our decision tree Workflow/Task/Answer model used with Galaxy Zoo<sup>1</sup>. When we scoped out the Old Weather project Rails 3 was still in beta and we decided to use MongoDB and MongoMapper for the data layer.</p>
+    
+    <h3>&raquo; Gathering requirements and learning new technologies</h3>
+    <p>Old Weather was funded by a <a href="http://www.jisc.ac.uk" target="_blank">JISC</a> grant that was time limited to 6 months. Before we could start building the application we had to figure a number of things including what sort of data the climate community and the naval historians wanted to collect and how we could make the user interface as pain-free as possible. This basically meant that the actual design and build of Old Weather took place over about 10 weeks.</p>
+
+    <p>I'll preface this next section by saying that I think MongoDB an excellent database engine and when understood properly beats something like MySQL for both performance and flexibility when developing new applications, however used in the wrong way it can give you some serious headaches that aren't obvious. An good example would be doing an case where you're selecting a number of records simultaneously. With the MongoDB/MongoMapper combination a Model.find(:all) can be surprisingly slow (the query seems to be broken down into a sequence of find_by_id statements all executed in serial). While RPM doesn't support MongoMapper out of the box it's possible to get the queries logging properly using <a href="https://gist.github.com/271931" target="_blank">this Gist</a></p>
+    
+    <h3>&raquo; Tuning with RPM</h3>
+    
+    <p>With such a short development window we launched Old Weather in September 2010 and unfortunately we didn't have enough time to tune the application as much as we'd have liked. That meant that in the weeks following the launch we sat down and worked through the New Relic RPM data to see where things weren't performing as well as we'd expect.</p>
+
+    <p>In the Old Weather domain model we have a Ship and Voyage class. The 'crew' of a ship voyage is called a represented by the Group class. Now we allow people to follow (i.e. join the group) a ship. Old Weather had a pretty successful launch so some of these groups get pretty large. Below are two queries that achieve the same functionality, one significantly slower than the other.</p>
+    
+    <script src="https://gist.github.com/895236.js?file=slow_vs_fast.rb"></script>
+    
+    <p>The old query collects an array of Users and checks to see if the logged in user is within that array. Remembering that the Model.find(:all) is slow this method (that's used heavily within Old Weather) over time became slower and slower and only became obvious when looking at the slow responses in RPM. The new query however uses the fact that there is a key (array) of User ids on the Group object that can we can query with the current User id.</p>
+
+    <p>Another example of a major optimisation was our use of Google Maps. We quickly identified that the slowest response times were for those pages where we were using Google Maps to show the 'progress' of a ship's voyage. The basic way that this works is that for each 'Asset' (log page) we keep a consensus 'average' position as calculated by the three repeats of each log page transcription. On the Voyage class we then have an instance method called progress. The old version of which looked like this:</p>
+    
+    <script src="https://gist.github.com/895246.js?file=old_progress.rb"></script>
+    
+    <p>This turned out to be a pretty expensive query - each Voyage can have up to about 1000 Assets associated with it. What we're trying to return are the last 10 positions for that voyage so we can display them on a map.</p>
+
+    <p>Our improved method (still not ideal):</p>
+    
+    <script src="https://gist.github.com/895247.js?file=new_progress.rb"></script>
+    
+    <p>These are just a couple of the many optimisations that we made on Old Weather. Given sufficient time we probably would have spotted these slow methods but with live projects outnumbering our developer team 2:1 time is exactly what we don't have. Because RPM allowed us to quickly identify the slowest transactions (example below) we knew exactly where to optimise first.</p>
+    
+    <a href="http://arfon.org.s3.amazonaws.com/slow_transactions.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/slow_transactions_small.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+    
+    <h3>&raquo; Conclusions</h3>
+    <p>New Relic RPM has been a fantastic tool to have in our toolkit over the past few months. More recently we've been using the new scalability analysis charts to get a better handle of whereabouts in the production stack we need to focus next - seeing a nice flat line for response time vs throughput for Galaxy Zoo is to be expected, it's a pretty well tuned application but we've noticed some less than optimal behaviour on some of our more recent projects that we'll be working on next.</p>
+    
+    <a href="http://arfon.org.s3.amazonaws.com/hubble_response.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/hubble_response_small.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+    
+    <p>New Relic RPM isn't cheap and I should probably do something fancy and calculate the number of developer (and server) hours saved by debugging performance issues using RPM. But alas I haven't. Instead I'll say that New Relic RPM is an indispensable tool for the modern web developer. Whether you're prototyping a new application or looking to scale and optimise a new one New Relic RPM is an incredible tool to have in your arsenal. </p>
+    
+		<p class="footnote">1. Even though they look rather different, <a href="http://www.galaxyzoo.org" target="_blank">Galaxy Zoo</a>, <a href="http://supernova.galaxyzoo.org" target="_blank">Galaxy Zoo Supernovae</a>, <a href="http://mergers.galaxyzoo.org" target="_blank">Galaxy Zoo Mergers</a>, <a href="http://www.moonzoo.org" target="_blank">Moon Zoo</a> and <a href="http://www.solarstormwatch.com" target="_blank">Solar Stormwatch</a> are all essentially the same application underneath sharing an identical domain model.</p>
+		</div>
+		
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
