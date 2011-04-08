@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<title>Weakly Typed - Getting Started With Elastic MapReduce and Hadoop Streaming</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Getting Started With Elastic MapReduce and Hadoop Streaming</h1>
+    
+    <p>A couple of months ago <a href="http://arfon.org/now-is-the-time-for-astroinformatics" title="Now is the time for astroinformatics">I wrote</a> about how the astrophysics community should place more value on those individuals building tools for their community - the <em>informaticians</em>. One example of a tool that I don't think is particularly well known in many areas of research is the <a href="http://hadoop.apache.org/" target="_blank" title="Hadoop">Apache Hadoop</a> software framework.</p>
+    
+    <p>Hadoop is a tool designed for distributing data-intensive processes across a large number of machines and its development was inspired by the <a href="http://labs.google.com/papers/mapreduce.html" target="_blank">Google MapReduce</a> and <a href="http://labs.google.com/papers/gfs.html" target+"_blank">Google File System</a> papers. One of the largest contributors to the Hadoop open source project is <a href="http://yahoo.com">Yahoo!</a> who use it to build their search indexes based upon vast quantities of data crawled by their search bots.</p>
+      
+    <h3>&raquo; Elastic MapReduce</h3>
+    <p>Hadoop allows you to execute parallel tasks on a number of 'slave' machine nodes (the 'map' function) before combining the results of the processing into a result (the 'reduce' step). This requires understanding how to configure a 'master' job-management node as well as a number of 'slave' worker nodes to form a Hadoop cluster.  Wouldn't it be nice if you didn't have to spend your days installing software and configuring firewalls? Well, thanks to Amazon and their <a href="http://aws.amazon.com/elasticmapreduce/" target="_blank">Elastic MapReduce</a> service you don't have to.</p>
+
+    <p>Elastic MapReduce is a web service built on top of the Amazon cloud platform. Using <a href="http://aws.amazon.com/ec2/" target="_blank">EC2</a> for compute <a href="http://aws.amazon.com/s3/" target="_blank">S3</a> for storage it allows you to easily provision a Hadoop cluster without having to worry about set-up and configuration. Data to be processed is pulled down from S3 and processed by an auto-configured Hadoop cluster running on EC2. Like all of the Amazon Web Services, you only pay for what you use - when you're not using your 10,000 node Hadoop cluster you don't pay for it.</p>
+    
+    <h3>&raquo; Processing with Hadoop</h3>
+    <p>Data processing workflows with Hadoop can be developed in a number of ways including writing MapReduce applications <a href="http://hadoop.apache.org/mapreduce/docs/current/mapred_tutorial.html" target="_blank">in Java</a>, using SQL-like interfaces which allows you to query a large dataset in parallel (e.g. <a href="http://pig.apache.org/" target="_blank">Pig</a>) or perhaps most exciting for people with existing software using something called <a href="http://hadoop.apache.org/mapreduce/docs/current/streaming.html" target="_blank">Hadoop Streaming</a>. Streaming allows you to develop MapReduce applications with scripts in any language you like for the mapper and reducer provided that they read input from STDIN and return their output to STDOUT.</p>
+    
+    <p>While Hadoop can be a valuable tool for any data-rich research domain, building applications using Streaming is a great way to leverage the power of Hadoop without having the overhead of learning a new programming language.</p>
+    
+    <h3>&raquo; A Very Simple Streaming Example - aka 'Who loves Justin Bieber?'</h3>
+    <p>As an example of how to use Hadoop Streaming on Elastic MapReduce I'm going to capture all of the tweets over a 12-hour period that have the word 'bieber' in them and search for the word 'love'. To save these tweets I've used the Twitter <a href="http://dev.twitter.com/pages/streaming_api" target="_blank">Streaming API</a> and the simple PHP script below that writes out the tweets to a file in hourly snapshots.</p>
+    
+    <script src="https://gist.github.com/909912.js?file=bieber_finder.php"></script>
+    
+    <h3>&raquo; The Map Script</h3>
+    <p>As I mentioned earlier, the streaming functions/scripts can in theory be written in any language - Elastic MapReduce supports Cascading, Java, Ruby, Perl, Python, PHP, R, or C++. In this example I'm going to use Ruby. Elastic MapReduce is going to pass the input files from the S3 bucket to this script running on the parallel slave nodes, hence the use of <code>ARGF.each</code> - we're reading from STDIN.</p>
+    
+    <script src="https://gist.github.com/909924.js?file=bieber_map.rb"></script>
+    
+    <p>Data from the streaming API PHP script are saved as JSON strings to hourly snapshotted files. Each line in the file is a potential tweet so we're stepping through the file line by line (tweet by tweet), verifying that we can parse the tweet using the <a href="https://github.com/jnunemaker/crack" target="_blank">Crack</a> Rubygem by John Nunemaker and also checking if the tweet text has the word 'love' in it. If we find 'love' then we print to STDOUT the word 'love' - this is the streaming output from the map step and is forms the input for the reduce function.</p>
+    
+    <h3>&raquo; The Reduce Script</h3>
+    
+    <p>The reduce script is super-simple. The output from the map script is automatically streamed to the reduce function by Hadoop. All we do with the reduce script is count the number of lines returned (i.e. the number of times the word 'love' is found).</p>
+    
+    <script src="https://gist.github.com/909930.js?file=bieber_reduce.rb"></script>
+    
+    <h3>&raquo; Bootstrapping Nodes</h3>
+    <p>In the map script we have a Rubygem dependency for the Crack gem. As we can't specify the machine image (AMI) that Elastic MapReduce uses we need to execute a bootstrap script to install Rubygems and the Crack gem when the machine boots.</p>
+    
+    <script src="https://gist.github.com/909942.js?file=boot.sh"></script>
+    
+    <h3>&raquo; Configuring the Workflow</h3>
+    <p>Now we've got our map and reduce scripts we need to upload them to S3 together with the raw data pulled from the Twitter API. We've placed out files in the following locations:</p>
+    <ul>
+      <li>Input path (Twitter JSON files): s3n://ruby-flow/bieber_input</li>
+      <li>Output path: s3n://ruby-flow/bieber_output</li>
+      <li>Map script: s3n://ruby-flow/bieber_scripts/map.rb</li>
+      <li>Reduce script: s3n://ruby-flow/bieber_scripts/reduce.rb</li>
+      <li>Bootstrap script: s3n://ruby-flow/bieber_scripts/boot.sh</li>
+    </ul>
+    
+    <p>Next we need to configure a streaming workflow with the values above.</p>    
+    <a href="http://arfon.org.s3.amazonaws.com/love_justin.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/love_justin.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+        
+    <p>Then we need to add a custom bootstrap action to install Rubygems and our dependencies on launch of the Amazon nodes, review the summary and launch the workflow.</p>
+        
+    <a href="http://arfon.org.s3.amazonaws.com/add_bootstrap.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/add_bootstrap.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+    
+    
+    <h3>&raquo; Executing the Workflow</h3>
+    <p>Once we have the workflow configured click the 'Create Job Flow' button to start processing. Clicking this button launches the Hadoop cluster, bootstraps each node with the specified script (boot.sh) and begins the processing of the data from the S3 bucket.</p>
+    
+    <a href="http://arfon.org.s3.amazonaws.com/configure_job.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/configure_job.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+    
+    <p>As the Elastic MapReduce nodes are instance-store backed rather than EBS volumes they take a couple of minutes to launch. You can review the status of the job on the Elastic MapReduce Jobs view but also see the status of the cluster on the EC2 tab.</p>
+    
+    <a href="http://arfon.org.s3.amazonaws.com/nodes.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/nodes.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+    
+    <h3>&raquo; Closing Down and Finishing Up</h3>
+    <p>Once the job has completed, the reduce function writes the output from the script to the output directory configured in the job setup and the cluster closes itself down.</p>
+    
+    <p>So it turns out that a fair few people love Justin Bieber: over the 12 hours there were about 200,000 tweets mentioning 'beiber' and we find the following in our output: <strong>8096 'loves' for Justin</strong>. That's a <a href="http://www.youtube.com/watch?v=zB_DOA2AL7Q" target="_blank">whole lotta love</a>.</p>
+    
+    <h3>&raquo; Conclusions</h3>
+    <p>Obviously this is a pretty silly example, but I've tried to keep it as simple as possible so that we can focus on the setup and configuring of a Hadoop Elastic MapReduce cluster.</p>
+    
+    <p>Hadoop is a great tool but it can be fiddly to configure. With Elastic MapReduce you can focus on the design of your map/reduce workflow rather than figuring out how to get your cluster setup. Next I'm planning on making some small changes to software used by radio astronomers to find astrophysical sources in data cubes of the sky to make it work with Hadoop Streaming - bring it on <a href="http://www.skatelescope.org/" target="_blank">SKA!</a></p>
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
