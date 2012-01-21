@@ -17,12 +17,12 @@
     <h1>Twitter Streaming with EventMachine and DynamoDB</h1>
     <p>This week <a href="http://aws.amazon.com" target="_blank" title="Amazon Web Services">Amazon Web Services</a> launched their latest database offering 'DynamoDB' - a highly-scalable NoSQL database service.</p>
     
-    <p>We've been using a couple of NoSQL database engines at work for a while now: <a href="http://redis.io" target="_blank">Redis</a> and <a href="http://www.mongodb.org/" target="_blank">MongoDB</a>. Mongo allowed us to simplify many of our data models and represent more faithfully the underlying entities we were trying to represent in our application and Redis is used for those projects where we need to make sure that a person only classifies an object once.<sup>1</sup></p>
+    <p>We've been using a couple of NoSQL database engines at work for a while now: <a href="http://redis.io" target="_blank">Redis</a> and <a href="http://www.mongodb.org/" target="_blank">MongoDB</a>. Mongo allowed us to simplify many of our data models and represent more faithfully the underlying entities we were trying to represent in our applications and Redis is used for those projects where we need to make sure that a person only classifies an object once.<sup>1</sup></p>
     
-    <p>Whether you're using MongoDB or MySQL, scaling the performance and size of a database is non-trivial and is a skillset in itself. DynamoDB is a fully <em>managed</em> database service aiming to offer high-performance data storage and retrieval at any scale, regardless of request traffic or storage requirements. Unusually for Amazon Web Services, they've made a lot of noise about some of the underlying technologies behind DynamoDB, in particular they've utilised SSD hard drives for storage.</p>
+    <p>Whether you're using MongoDB or MySQL, scaling the performance and size of a database is non-trivial and is a skillset in itself. DynamoDB is a fully <em>managed</em> database service aiming to offer high-performance data storage and retrieval at any scale, regardless of request traffic or storage requirements. Unusually for Amazon Web Services, they've made a lot of noise about some of the underlying technologies behind DynamoDB, in particular they've utilised SSD hard drives for storage. I guess telling us this is designed to give us a hint at the performance characteristics we might expect from the service.</p>
     
     <h3>&raquo; A worked example</h3>
-    <p>As with all AWS products there are a number of articles outlining how to get started with DynamoDB. This article is designed to provide an example usecase where DynamoDB really shines - parsing a continual stream of data from the Twitter API. We're going to use the Twitter streaming API to capture tweets and index them by user_id and creation time.</p>
+    <p>As with all AWS products there are a <a href="http://aws.typepad.com/aws/2012/01/amazon-dynamodb-internet-scale-data-storage-the-nosql-way.html" target="_blank">number</a> of <a href="http://www.allthingsdistributed.com/2012/01/amazon-dynamodb.html" target="_blank">articles</a> outlining how to get started with DynamoDB. This article is designed to provide an example use case where DynamoDB really shines - parsing a continual stream of data from the Twitter API. We're going to use the Twitter streaming API to capture tweets and index them by user_id and creation time.</p>
     
     <p>DynamoDB has the concept of a 'table'. Tables can either be created in using the <a href="https://console.aws.amazon.com" target="_blank">AWS Console</a>, by making requests to the DynamoDB web service or by using one of the abstractions such as the <a href="https://github.com/amazonwebservices/aws-sdk-for-ruby" target="_blank">AWS Ruby SDK</a>. There are a number of factors you need to consider when creating a table including read/write capacity and how the records are indexed. The read/write capacity can be modified after table creation but the primary key cannot. DynamoDB assumes a fairly random access pattern for your records across the primary key - a poor choice of primary key could in theory lead to sub-par performance.</p>
     
@@ -49,8 +49,31 @@
     
     <script src="https://gist.github.com/1651172.js?file=twitterstream_dynamodb.rb"></script>
 
-    <!-- <blockquote class="statement">We need to stop relying on occasional gems of brilliance by individual researchers and move to a fully-fledged research area that combines astrophysics with data-intensive computer science.</blockquote> -->
-		
+    <p>We can see the tweet count in out table increasing over time using the following script.</p>
+    
+    <script src="https://gist.github.com/1652675.js?file=tweet_counter.rb"></script>
+    
+    <h3>&raquo; Write performance</h3>
+    <p>As things currently stand, our write performance is limited by the time taken by a single Ruby process to complete a HTTP request to the DynamoDB API endpoint (e.g. http://dynamodb.us-east-1.amazonaws.com). Regardless of your write capacity and network performance you're never going to realise the performance of DynamoDB using a single threaded process like this. What we want instead is a multi-threaded tweet parsing monster.</p>
+    
+    <h3>&raquo; Enter EventMachine</h3>
+    <p>Given the write performance is limited by the HTTP request cycle when we receive notification of a new tweet we want to pass of the task of posting that tweet to DynamoDB to a separate thread. <a href="https://github.com/eventmachine/eventmachine" target="_blank" title="EventMachine">EventMachine</a> has a simple way to handle such a scenario using the <code>EM.defer</code> method</p>
+    
+    <script src="https://gist.github.com/1652703.js?file=em_tweetstreamer.rb"></script>
+    
+    <p>I've set up an EventMachine <code>threadpool_size</code> of 50 (default is 20) which means that we can have 50 processes simultaneously writing to DynamoDB. Awesome. If you choose a popular term on Twitter (such as <a href="/getting-started-with-elastic-mapreduce-and-hadoop-streaming"> Bieber</a>) you'll see dramatically improved write performance using EventMachine this way.</p>
+    
+    <h3>&raquo; Reading back those records</h3>
+    <p>As I mentioned earlier, you're limited to relatively simple indexes with DynamoDB and so the primary key you choose will have a significant affect on the query performance of your application. Below are some examples of querying using the index and using the Scan API.</p>
+    
+    <script src="https://gist.github.com/1653103.js?file=sample_queries.rb"></script>
+    
+    <p>For the most simple use cases executing queries using the Scan API will suffice. As data volumes grow however, common queries will need to be made more performant by keeping separate tables indexing the attributes you're querying on. And this is one of the core differences between DynamoDB and other NoSQL solutions such as MongoDB today - if you want to produce complex indexes of your records then you'll need to do the heavy lifting yourself.</p>
+    
+    <h3>&raquo; Conclusions</h3>
+    <p>DynamoDB is an exciting new technology from AWS and I can already think of a number of use cases where we'd be very seriously considering it. As I see it, DynamoDB sits somewhere in between Redis and MongoDB, providing a richer query API than something like Redis but requiring more of your application (or a change in your data model) to support queries against a range of attributes.</p>
+    
+    <p>One significant factor favouring DynamoDB is that just like <a href="http://aws.amazon.com/rds/" target="_blank">RDS</a> it's a database <em>as a service</em>. We've been using RDS in production now for well over two years and the sheer convenience of having someone else manage your database, making it easy to provision additional capacity or set up read-slaves can be spoken of too highly. Our largest MongoDB instance today is about 5GB in size and very soon we're going to have to being thinking about how to scale it across a number of servers. Regardless of the potential additional complexity of DynamoDB, not having to think about scaling is a massive win and makes it worthy of consideration for any NoSQL scenario.</p>
 				
 		<p class="footnote">1. We keep a Redis key for each user with the ids of the objects that they have classified. Subtracting that from a key with all available ids and then returning a random member is super-fast in Redis.
 		</div>
