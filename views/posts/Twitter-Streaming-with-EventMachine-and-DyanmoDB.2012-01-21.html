@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Weakly Typed - Twitter Streaming with EventMachine and DynamoDB</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Twitter Streaming with EventMachine and DynamoDB</h1>
+    <p>This week <a href="http://aws.amazon.com" target="_blank" title="Amazon Web Services">Amazon Web Services</a> launched their latest database offering 'DynamoDB' - a highly-scalable NoSQL database service.</p>
+    
+    <p>We've been using a couple of NoSQL database engines at work for a while now: <a href="http://redis.io" target="_blank">Redis</a> and <a href="http://www.mongodb.org/" target="_blank">MongoDB</a>. Mongo allowed us to simplify many of our data models and represent more faithfully the underlying entities we were trying to represent in our application and Redis is used for those projects where we need to make sure that a person only classifies an object once.<sup>1</sup></p>
+    
+    <p>Whether you're using MongoDB or MySQL, scaling the performance and size of a database is non-trivial and is a skillset in itself. DynamoDB is a fully <em>managed</em> database service aiming to offer high-performance data storage and retrieval at any scale, regardless of request traffic or storage requirements. Unusually for Amazon Web Services, they've made a lot of noise about some of the underlying technologies behind DynamoDB, in particular they've utilised SSD hard drives for storage.</p>
+    
+    <h3>&raquo; A worked example</h3>
+    <p>As with all AWS products there are a number of articles outlining how to get started with DynamoDB. This article is designed to provide an example usecase where DynamoDB really shines - parsing a continual stream of data from the Twitter API. We're going to use the Twitter streaming API to capture tweets and index them by user_id and creation time.</p>
+    
+    <p>DynamoDB has the concept of a 'table'. Tables can either be created in using the <a href="https://console.aws.amazon.com" target="_blank">AWS Console</a>, by making requests to the DynamoDB web service or by using one of the abstractions such as the <a href="https://github.com/amazonwebservices/aws-sdk-for-ruby" target="_blank">AWS Ruby SDK</a>. There are a number of factors you need to consider when creating a table including read/write capacity and how the records are indexed. The read/write capacity can be modified after table creation but the primary key cannot. DynamoDB assumes a fairly random access pattern for your records across the primary key - a poor choice of primary key could in theory lead to sub-par performance.</p>
+    
+    <p>DynamoDB is schema-less (NoSQL) and so all we need to define upfront is the primary key for indexing records. Primary keys can be defined in two ways:</p>
+    
+    <p><strong>Simple hash-type primary</strong> - Simple hash-type primary key where a hash index is made using this key only.
+      <script src="https://gist.github.com/1650927.js?file=create_table_hash_key.rb"></script>
+    </p>
+    <p><strong>Hash and range type primary</strong> - Composite hash and range primary key. In this situation two indexes are made on the records - an unordered hash index and a sorted range index.
+      <script src="https://gist.github.com/1650887.js?file=create_table_composite_primary.rb"></script>
+    </p>
+    
+    <h3>&raquo; Why should I care about your choice of primary key?</h3>
+    <p>Choosing an appropriate primary key is especially important with DynamoDB as it is only the primary key that is indexed. That's right - <em>at this point in time it is not possible to create custom indexes on your records</em>. This doesn't mean that querying by item attributes isn't possible, it is, but you have to use the Scan API which is limited to 1MB of data per request (you can use a continuation token for more records) and as each query has to read the full table the performance will degrade as the database grows.</p>
+    
+    <p>For this example we're going to go with the composite hash and range key (user_id as the hash_key and created_at as the range_key) so that we can search for Tweets by a particular user in a given time period.</p>
+
+    <h3>&raquo; Writing records</h3>
+    <p>DynamoDB implements a HTTP/JSON API and this is the sole interface to the service. As it's GOP debate season we're going to search the Twitter API for mentions of the term 'Romney' or 'Gingrich'. When a tweet matches the search we're going to print the Twitter user_id, a timestamp, the tweet_id, the tweeter location and their screen_name.</p>
+    
+    <script src="https://gist.github.com/1651142.js?file=gop_simple.rb"></script>
+    
+    <p>Next we want to write the actual records to DynamoDB.</p>
+    
+    <script src="https://gist.github.com/1651172.js?file=twitterstream_dynamodb.rb"></script>
+
+    <!-- <blockquote class="statement">We need to stop relying on occasional gems of brilliance by individual researchers and move to a fully-fledged research area that combines astrophysics with data-intensive computer science.</blockquote> -->
+		
+				
+		<p class="footnote">1. We keep a Redis key for each user with the ids of the objects that they have classified. Subtracting that from a key with all available ids and then returning a random member is super-fast in Redis.
+		</div>
+		
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
