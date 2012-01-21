@@ -44,7 +44,7 @@
       <h3>Recently from the internets</h3>
       <ul>
         <% @tweets.each do |tweet| %>
-          <li><%= tweet.text %> <a href="<%= tweet.url %>" target="_blank">&raquo;</a></li>
+          <li><%= tweet.auto_linked_text %> <a href="<%= tweet.url %>" target="_blank">&raquo;</a></li>
         <% end %>
       </ul>
     <% end %>

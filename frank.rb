@@ -9,6 +9,10 @@ class Tweet < Hashie::Dash
     "http://twitter.com/arfon/status/#{self.id}"
   end
   
+  def auto_linked_text
+    self.text.gsub /((https?:\/\/|www\.)([-\w\.]+)+(:\d+)?(\/([\w\/_\.]*(\?\S+)?)?)?)/, %Q{<a href="\\1">\\1</a>}
+  end
+  
   def self.parse_recent_tweets(file=nil)
     begin
       file = open('http://twitter.com/statuses/user_timeline/617243.json') unless file
