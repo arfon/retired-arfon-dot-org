@@ -35,7 +35,7 @@
       <script src="https://gist.github.com/1650887.js?file=create_table_composite_primary.rb"></script>
     </p>
     
-    <h3>&raquo; Why should I care about your choice of primary key?</h3>
+    <h3>&raquo; Why should I care about my choice of primary key?</h3>
     <p>Choosing an appropriate primary key is especially important with DynamoDB as it is only the primary key that is indexed. That's right - <em>at this point in time it is not possible to create custom indexes on your records</em>. This doesn't mean that querying by item attributes isn't possible, it is, but you have to use the Scan API which is limited to 1MB of data per request (you can use a continuation token for more records) and as each query has to read the full table the performance will degrade as the database grows.</p>
     
     <p>For this example we're going to go with the composite hash and range key (user_id as the hash_key and created_at as the range_key) so that we can search for Tweets by a particular user in a given time period.</p>
