@@ -41,7 +41,7 @@
     <br />
     
     <% if @tweets %>
-      <h3>Recently from the internets</h3>
+      <h3>Recently from the internets <em>(presumably some kind of <a href="https://dev.twitter.com/blog/changes-coming-to-twitter-api" target="_blank">massive violation</a> of the Twitter API)</em></h3>
       <ul>
         <% @tweets.each do |tweet| %>
           <li><%= tweet.auto_linked_text %> <a href="<%= tweet.url %>" target="_blank">&raquo;</a></li>
