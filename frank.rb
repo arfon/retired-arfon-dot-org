@@ -1,4 +1,11 @@
-%w{rubygems sinatra erb crack open-uri hashie date}.each { |dep| require dep }
+%w{rubygems sinatra erb crack open-uri hashie date twitter}.each { |dep| require dep }
+
+Twitter.configure do |config|
+  config.consumer_key = TWITTER_CONSUMER_KEY
+  config.consumer_secret = TWITTER_CONSUMER_SECRET
+  config.oauth_token = TWITTER_OAUTH_TOKEN
+  config.oauth_token_secret = TWITTER_OAUTH_SECRET
+end
 
 class Tweet < Hashie::Dash
   property :id
@@ -13,11 +20,10 @@ class Tweet < Hashie::Dash
     self.text.gsub /((https?:\/\/|www\.)([-\w\.]+)+(:\d+)?(\/([\w\/_\.]*(\?\S+)?)?)?)/, %Q{<a href="\\1">\\1</a>}
   end
   
-  def self.parse_recent_tweets(file=nil)
+  def self.parse_recent_tweets
     begin
-      file = open('http://twitter.com/statuses/user_timeline/617243.json') unless file
-      parsed = Crack::JSON.parse(file.read).slice(0,5)
-      parsed.collect { |p| Tweet.new(:id => p['id'], :text => p['text'], :date => DateTime.parse(p['created_at']))}
+      tweets = Twitter.user_timeline('arfon', :count => 50).select {|t| !t.retweet? }.slice(0,5)
+      tweets.collect { |p| Tweet.new(:id => p.id, :text => p.text, :date => p.created_at)}
     rescue
       return false
     end
