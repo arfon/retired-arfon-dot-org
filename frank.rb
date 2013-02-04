@@ -77,7 +77,7 @@ end
 # this method looks at all of the static HTML files in 'views/posts' and checks if the URL being requested matches any of the files
 before do
   # cache views for 30 minutes (Heroku Varnish cache)
-  response.headers['Cache-Control'] = 'public, max-age=1800'
+  response.headers['Cache-Control'] = 'public, max-age=60'
   # build list of posts from 
   files = Dir.glob('views/posts/*.html')
   @posts = []
