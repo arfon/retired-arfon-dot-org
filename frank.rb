@@ -17,7 +17,7 @@ class Tweet < Hashie::Dash
   end
   
   def auto_linked_text
-    self.text.gsub /((https?:\/\/|www\.)([-\w\.]+)+(:\d+)?(\/([\w\/_\.]*(\?\S+)?)?)?)/, %Q{<a href="\\1">\\1</a>}
+    self.text.gsub(/((https?:\/\/|www\.)([-\w\.]+)+(:\d+)?(\/([\w\/_\.]*(\?\S+)?)?)?)/, %Q{<a href="\\1">\\1</a>}).gsub(/@(\w+)/, %Q{@<a href="http://twitter.com/\\1">\\1</a>})
   end
   
   def self.parse_recent_tweets
