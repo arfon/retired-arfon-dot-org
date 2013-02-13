@@ -75,7 +75,7 @@
     
     <p>One significant factor favouring DynamoDB is that just like <a href="http://aws.amazon.com/rds/" target="_blank">RDS</a> it's a database <em>as a service</em>. We've been using RDS in production now for well over two years and the sheer convenience of having someone else manage your database, making it easy to provision additional capacity or set up read-slaves can be spoken of too highly. Our largest MongoDB instance today is about 5GB in size and very soon we're going to have to being thinking about how to scale it across a number of servers. Regardless of the potential additional complexity of DynamoDB, not having to think about scaling is a massive win and makes it worthy of consideration for any NoSQL scenario.</p>
 				
-		<p class="footnote">1. We keep a Redis key for each user with the ids of the objects that they have classified. Subtracting that from a key with all available ids and then returning a random member is super-fast in Redis.
+		<p class="footnote">1. We keep a Redis key for each user with the ids of the objects that they have classified. Subtracting that from a key with all available ids and then returning a random member is super-fast in Redis.</p>
 		</div>
 		
   <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
