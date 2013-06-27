@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<title>Weakly Typed - How the Zooniverse Works: Tools and Technologies</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>How the Zooniverse Works: Tools and Technologies</h1>
+    <p class="preface">This was originally posted on the Zooniverse blogs <a href="http://blog.zooniverse.org/2013/06/25/how-the-zooniverse-works-tools-and-technologies/">here</a>.</p>
+
+    <p>In my last post I described at length the domain model that we use to describe conceptually what the Zooniverse does. That wouldn’t mean much without an implementation of that model and so in this post I’m going to describe some of the tools and technologies that we use to actually run our citizen science projects.</p>
+      
+    <h3>&raquo; The lifecycle of a Zooniverse project</h3>
+    <p>Let’s think a little more about what happens when you visit a project such as Snapshot Serengeti. Ignoring all of the to-and-fro that your web browser does to work out where the domain name ‘snapshotserengeti.org’ points to, once it’s figured this and a few other details out you basically get sent a website that your browser renders for you. For the website to function as a Zooniverse project a few things are essential:</p>
+
+    <p>
+      <ol>
+        <li>You need to be able to view images (or listen to audio or watch a video) that we and the science team need your help analysing.</li>
+        <li>You need to be able to log in with your Zooniverse account.</li>
+        <li>We need to capture back what you said when doing the citizen science analysis task.</li>
+        <li>Save out favourite images to your profile.</li>
+        <li>View recent images you’ve seen in your profile.</li>
+        <li>Discuss these images with the community.</li>
+      </ol>
+    </p>
+    
+    <p>It turns out that pretty much all of the functionality mentioned above is for us delivered by an application we call Ouroboros as an API layer and a website (such as Snapshot Serengeti) talking to it.</p>
+
+    <a href="http://arfon.org.s3.amazonaws.com/snapshot.jpg" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/snapshot.jpg" width="700px" style="border:0px;margin-left:100px;" /></a>
+
+    <h3>&raquo; Ouroboros – or 'why the simplest API that works is probably all you need'.</h3>
+    <p>So what is Ouroboros? It provides an API (REST/JSON) that allows you to build a Zooniverse project that has all of the core components (1-6) listed above. Technology-wise it’s a custom Ruby on Rails application (Rails 3.2) that uses MongoDB to store data and Redis as a query cache all running on Amazon Web Services. It’s probably utterly useless to anyone but us but for our needs it’s just about perfect.</p>
+
+    <a href="http://arfon.org.s3.amazonaws.com/tech.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/tech.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+
+    <p>At the Zooniverse we’re optimised for a few different things. In no particular order of priority they are:</p>
+
+    <p>
+      <ol>
+        <li><strong>Volume</strong> – we want to be able to build lots of projects.</li>
+        <li><strong>Science</strong> – we want it to be easy to do science with the efforts of our community.</li>
+        <li><strong>Scale/performance</strong> – we want to be able to have millions of people come to our proejcts and them to stay up.</li>
+        <li><strong>Availability</strong> – we'd prefer our websites to be 'up' and not 'down'.</li>
+        <li><strong>Cost</strong> – we want to keep costs at a manageable level.</li>
+      </ol>
+    </p>
+
+    <p>Pretty much all of these requirements point to having a shared API (Ouroboros) that serves a large number of projects (I’ll argue #4 in the pub with anyone who really wants to push me on it).</p>
+
+    <p>Running a core API that serves many projects makes you take the maintenance and health of that application pretty seriously. Should Ouroboros throw a wobbly then we’d currently take out about 10 Zooniverse projects at once and this is only set to increase. This means we’ve thought a lot about how to scale the application for times when we’re busy and we also spend significant amounts of time monitoring the application performance and tuning code where necessary. I mentioned that cost is a factor – running a central API means that when the Zooniverse is quiet and there aren’t many people about we can scale back the number of servers we’re running (automagically on Amazon Web Services) to a minimal level.</p>
+
+    <p>We’ve not always built our projects this way. The original Galaxy Zoo (2007) was an ASP/web forms application, projects between Galaxy Zoo 2 and SETI Live were all separate web applications, many of them built using an application called <a href="https://github.com/zooniverse/The-Juggernaut" target="_blank" title="The Juggernaut">The Juggernaut</a>. Building standalone applications every time not only made it difficult to maintain our projects but we also found ourselves writing very similar (but subtly different) code many times between projects, code for things like choosing which Subject to show next.</p>
+
+    <p>Ouroboros is an evolution of our thinking about how to build projects, what's important and generalisable and what isn't. At it's most basic it’s a really fast Subject allocator and Classification collector. Our realisation over the last few years was that the vast majority of what’s different about each project is the user experience and classification interface and this has nothing to do with the API.</p>
+
+    <a href="http://arfon.org.s3.amazonaws.com/our-stack.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/our-stack.png" width="700px" style="border:0px;margin-left:100px;" /></a>
+
+    <h3>&raquo; The actual projects</h3>
+
+    <p>The point of having a central API is that when we want to build a new project we’re already working with a very familiar toolset – the way we log people in, do signup forms, ask for a Subject, send back Classifications – all of this is completely standard. In fact if you’re building in JavaScript (which we almost always are these days) then there’s a client library called 'Zooniverse' (meta I know) available <a href="https://github.com/zooniverse/zooniverse/tree/no-deps" target="_blank" title="Zooniverse library">here on GitHub</a>.</p>
+
+    <p>Having a standard API and client library for talking to it meant that we built the Zooniverse project Planet Four in less than 1 week! That’s not to say it’s trivial to build projects, it’s definitely not, but it is getting easier. And having this standardised way of communicating with the core Zooniverse means that the bulk of the effort when building Planet Four was exactly where it should be – the fan drawing tools – the bit that’s different from any of our other projects.</p>
+
+    <a href="http://arfon.org.s3.amazonaws.com/p4.jpg" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/p4.jpg" width="700px" style="border:0px;margin-left:100px;" /></a>
+
+    <p>So how do we actually build our projects these days? We build our projects as JavaScript web applications using JavaScript web frameworks such as Spine JS, Backbone or something completely custom. The point being, that all of the logic for how the interface should behave is baked into the JavaScript application – Ouroboros doesn’t try and help with any of this stuff.</p>
+
+    <p>Currently the majority of our projects are hosted using the <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html" target="_blank" title="S3">Amazon S3 static website hosting service</a>. The benefits of this are numerous but key ones for us are:</p>
+
+    <p>
+      <ol>
+        <li>There’s no webserver serving the site content, that is http://www.galaxyzoo.org resolves to an S3 bucket. When you access the Galaxy Zoo site S3 does all of the hard work and we just pay for the bandwidth from S3 to your computer.</li>
+        <li>Deploying is easy. When we want to put out a new version of any of our sites we just upload new timestamped versions of the files and your browser starts using them instead.</li>
+        <li>It’s S3! – Amazon S3 is a quite remarkable service –  a significant fraction of the web is using it. Currently hosting more than 2 trillion (yes that’s 12 zeroes) objects and regularly serving more than 1 million requests for data per second the S3 service is built to scale and we get to use it (and so can you).</li>
+      </ol>
+    </p>
+
+    <p>Amazon S3 is a static webhost (i.e. you can’t have any server-side code running) so how do we make a static website into a Zooniverse project you can log in to when we can’t access database records? The main site functions just fine – these JavaScript applications (such as the current Galaxy Zoo or any recent Zooniverse project) implement what is different about the project’s interface. We then use a small invisible iFrame on each website that actually points to api.zooniverse.org which is Ouroboros. When you use a login form we actually set a cookie on this domain and then send all of our requests back to the API through this iFrame. This approach is a little unusual and with browsers tightening up the restrictions on third-party cookies if looks like we might need to swap it out for a different approach but for now it’s working well.</p>
+
+    <h3>&raquo; Summing up</h3>
+
+    <p>If you’re like me then when you read something you read the opening, look at the pictures and then skip to the conclusions. I’ll summarise here just incase you’re doing that too:</p>
+
+    <p>In the Zooniverse there’s a clear separation between the API (Ouroboros) and the citizen science projects that the community interact with. Ouroboros is a custom-built, highly scalable application built in Ruby on Rails, that runs on Amazon Web Services and uses MongoDB, Redis and a few other fancy technologies to do its thing.</p>
+
+    <p>The actual citizen science projects that people interact with are these days all pure JavaScript applications that are hosted on Amazon S3 and they’re pretty much all <a href="https://github.com/zooniverse" target="_blank" title="Zooniverse repos">open source</a>. They’re generally still bespoke applications each time but share common code for talking to Ouroboros.</p>
+
+    <p>What I didn’t talk about in this post are the hardest bits we’ve solved in Ouroboros – namely all of the logic about how to make finding Subjects for people quickly and other ‘smart stuff’. That’s coming up next.</p>
+
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
