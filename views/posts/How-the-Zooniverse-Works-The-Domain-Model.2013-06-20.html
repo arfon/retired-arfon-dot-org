@@ -46,7 +46,7 @@
 
 	<p><b>Workflow/Task</b></p>
 
-	<p>These two entities are grouped together as they're often used to mean broadly the same thing. When a User is presented with a Subject on one of our projects we ask them to _do something_. This something is called the Task. These Tasks can be grouped together into a Workflow which is essentially just a grouping entity. To be honest we don't use it very much as most projects just have a single Workflow but in theory it allows us to group a collection of Tasks into a logical unit. In Notes from Nature each step of the transcription (such as 'What is the location?') is a separate Task, in Galaxy Zoo, each step of the decision tree is a Task too.</p>
+	<p>These two entities are grouped together as they're often used to mean broadly the same thing. When a User is presented with a Subject on one of our projects we ask them to <em>do something</em>. This something is called the Task. These Tasks can be grouped together into a Workflow which is essentially just a grouping entity. To be honest we don't use Workflow very much as most projects just have a single Workflow but in theory it allows us to group a collection of Tasks into a logical unit. In Notes from Nature each step of the transcription (such as 'What is the location?') is a separate Task, in Galaxy Zoo, each step of the decision tree is a Task too.</p>
 
 	<p><b>Classification</b></p>
 
@@ -54,13 +54,13 @@
 
 	<a href="http://arfon.org.s3.amazonaws.com/classification.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/classification.png" width="700px" style="border:0px;margin-left:100px;" /></a>
 
-	<p>I'll talk more about <i>what</i> we store in a Classification in a followup the next post about technologies suffice to say now that they store a full description of what the User said about the object. In previous versions of the Zoonivese API software we tried to break these records out into smaller units called Annotations but we don't do that any more - it was an unnecessary step.</p>
+	<p>I'll talk more about <i>what</i> we store in a Classification in a followup the next post about technologies suffice to say now that they store a full description of what the User said about the object. In previous versions of the Zoonivese API software we tried to break these records out into smaller units called Annotations but we don't do that any more - it was an unnecessary generalisation.</p>
 
 	<p><b>Group</b></p>
 
 	<p>Sometimes we need to group Subjects together for some higher level function. Perhaps it's to represent a season's worth of images in Snapshot Serengeti or a particular cell dye staining in Cell Slider. Whatever the reason for grouping, the entity we use to describe this is 'Group'. </p>
 
-	<p>Grouping records is both one of the most useful features Ouroboros offers but also one of the things it took the longest for us to find the right level of abstraction. While a Group can represent an astronomical survey in Galaxy Zoo (such as the Hubble CANDELS survey) or a Ship in Old Weather, it isn't just enough for a bunch of Subjects to all be associated with each other. There's often a lots of functionality that goes along with a Group or the Subjects within that is custom for each Zooniverse project. Ultimately we've solved this in a similar fashion to Subject - by having per-project subclasses of Groups (i.e. there is a SerengetiGroup that inherits from Group) that can set custom behaviour as required.</p>
+	<p>Grouping records is both one of the most useful features Ouroboros offers but also one of the things it took the longest for us to find the right level of abstraction. While a Group can represent an astronomical survey in Galaxy Zoo (such as the Hubble CANDELS survey) or a Ship in Old Weather, it isn't just enough for a bunch of Subjects to all be associated with each other. There's often a lots of functionality that goes along with a Group or the Subjects within that is custom for each Zooniverse project. Ultimately we've solved this in a similar fashion to Subject - by having per-project subclasses of Groups (i.e. there is a SerengetiGroup that inherits from Group) that can implement custom behaviour as required.</p>
 
 	<p><b>Project</b></p>
 
