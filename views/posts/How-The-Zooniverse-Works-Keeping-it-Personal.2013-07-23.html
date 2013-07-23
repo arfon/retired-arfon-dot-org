@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<title>Weakly Typed - How the Zooniverse Works: Keeping in Personal</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>How the Zooniverse Works: Keeping in Personal</h1>
+    <p class="preface">This was originally posted on the Zooniverse blogs <a href="http://blog.zooniverse.org/2013/07/23/keeping-it-personal/">here</a>.</p>
+
+    <p>This the the third post in a series about how, at a high level, the Zooniverse collection of citizen science projects work. In the <a href="http://arfon.org/how-the-zooniverse-works-the-domain-model">first post</a> I described the core domain model description that we use – something that turns out to be a crucial part of faciliating conversation between scienctists and developers. In <a href="http://arfon.org/how-the-zooniverse-works-tools-and-technologies">the second</a> I covered about some of the core technologies that keep things running smoothly. In this and the next few posts I’m going to talk about parts of the Zooniverse that are subtle but important optimisations. Things such as how we pick which Subject to show to someone next, how we decide when a Subject is complete, and measuring the quality of a person’s Classifications.</p>
+    
+    <p>Much of what I’m about to describe probably isn’t obvious to the casual observer but these are some of the pieces of the Zooniverse technical puzzle that as a team we’re most proud of and have taken many iterations over the past five years to get right. This post is about how we decide what to show to you next.</p>
+
+    <h3>&raquo; A Quick Refresher</h3>
+    <p>At its most basic, a Zooniverse citizen science project is simply a website that shows you some data <a href="http://www.galaxyzoo.org" target="_blank">images</a>, <a href="http://www.batdetective.org" target="_blank">audio</a> or <a href="http://www.planethunters.org" target="_blank">plots</a>, asks you to perform some kind of analysis on interpretation on it and collects back what you said. As I described in my previous post we’ve abstracted most of the data-part of that workflow into an API called Ouroboros which handles functionality such as login, serving up Subjects and collecting back user-generated Classifications.</p>
+    
+    <h3>&raquo; Keeping it Fast</h3>
+    <p>The ability for our infrastructure to scale quickly and predictably is a major technical requirement for us. We’ve been fortunate over the past few years to receive a fair bit of attention in the press which can result in tens or hundreds of thousands of people coming to our projects in a very short period of time. When you’re dealing with visitor numbers at that scale ideally you want everyone to have a pleasant experience.</p>
+    
+    <p>Let’s think a little more about what absolutely has to happen when a person visits for example Galaxy Zoo.</p>
+    
+    <ol>
+      <li>We need to show a login/signup form and send the information provided by the individual back to the server.</li>
+      <li>Once registration/login is complete we need to serve back some personal information (such as a screen name).</li>
+      <li>We need to pick some Subjects to show.</li>
+    </ol>
+
+    <p>For many of the operations that happen in the Zooniverse, a record is written to a database somewhere. When trying to improve the performance of code that involves databases, a key strategy is to try and avoid querying these database as much as possible especially if the queries are complex and the databases are large as these are often the slowest parts of your application.</p>
+    
+    <p>What count’s as ‘complex’ and ‘big’ in database terms varies based upon the types of records that you are storing, the choices you’ve made about how to index them and the resources you provide to the database server i.e. how much RAM/CPU you have available.</p>
+    
+    <h3>&raquo; Keeping it personal</h3>
+    
+    <p>If there’s one place that complex queries are guaranteed to reside in a Zooniverse project codebase then it’s the part where we decide what to show to a particular person next. It’s complex, in need of optimisation and potentially slow for a number of reasons:</p>
+    
+    <ol>
+      <li>When selecting a Subject we need to pick from one that a particular User hasn’t seen before.</li>
+      <li>Often Subjects are in Groups (such as a collection of records in Notes from Nature) and so these queries have to happen within a particular scope.</li>
+      <li>We often want to prioritise a certain subset of the Subjects.</li>
+      <li>These queries happen a lot, <em>at least</em> n * the total number of Subjects (where n is the number of repeat classifications each Subject receives).</li>
+      <li>The list of Subjects we’re selecting from is often large (many millions).</li>
+    </ol>
+    
+    <p>On first inspection, writing code to achieve the requirements above might not seem that hard but if you add in the requirement that we’d like to be able to select Subjects hundreds of times per second for many thousands of Users then it starts to get tricky.</p>
+    
+    <p>A ‘poor man’s’ version of this might look something like this</p>
+    
+    <script src="https://gist.github.com/arfon/6059425.js"></script>
+    
+    <p>What we’re doing here is finding all the classifications for a given User and grabbing all of the Subject ids for them. Then we do a SQL select to grab the first record that doesn’t have an id matching one of the ones from existing classifications.</p>
+    
+    <p>While this code is perfectly valid and would work OK for small-scale datasets there are a number of core issues with it:</p>
+    
+    <ol>
+      <li>It’s pretty much guaranteed to get slower over time – as the number of classifications grows for a user retrieving the recent classifications is going to become a bigger and bigger query.</li>
+      <li>It’s slow from the start – NOT IN queries are notoriously slow.</li>
+      <li>It’s wasteful – every time we grab a new Subject for a User we essentially run the same query to grab the recent classification Subject ids.</li>
+    </ol>
+    
+    <p>These factors combined make for some serious potential performance issues if we want to execute code like this frequently, for large numbers of people and across large datasets all of which are requirements for the Zooniverse.</p>
+    
+    <h3>&raquo; A better way</h3>
+    
+    <p>It turns out that there are technologies out there designed to help with this sort of scenario. When we select the new Subject for a user there’s no reason why this operation has to actually happen in the database that the Subjects are stored in, instead we can keep ‘proxy’ records stored in lists or sets. That means that if we have a big list of ids of things that are available to be classified and a list of ids of things that each user has seen so far then when we want to select a Subject for someone we just subtract those two things and then pick randomly from the difference and pluck that record from the database.</p>
+    
+    <a href="http://arfon.org.s3.amazonaws.com/selector.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/selector.png" width="732px" style="border:0px;margin-left:80px;" /></a>
+    
+    <p>In the diagram above when Rob (in the middle) comes to one of our sites we subtract from the big list of Subjects that need classifying still (in blue) the list of things that he’s already seen (in green) and then pick randomly from that resulting set. Going by this diagram it looks like we must have to keep a list of available Subjects for each project together with a separate list of Subjects <em>per project per user</em> so that we can do this subtraction and that’s exactly the case. The database technology that we use to do this is called Redis and it’s designed for operations just like this.</p>
+    
+    <h3>&raquo; The result</h3>
+    <p>Maturing our codebase to a point where the queries described above are straightforward has been a lot of work, mostly by <a href="https://github.com/parrish" target="_blank">this guy</a>. What does it look like to actually require this kind of behaviour in code? Just two lines:</p>
+    
+    <script src="https://gist.github.com/arfon/6059453.js"></script>
+    
+    <p>Not only is it simple for us to now to implement this kind of Subject selection behaviour, using Redis to perform these selection operations means that everything is insanely quick, typically returning from Redis in ~30ms even for databases with many tens of thousands of Subjects to be classified.</p>
+    
+    <a href="http://arfon.org.s3.amazonaws.com/ouroboros_selector.png" target="_blank"><img src="http://arfon.org.s3.amazonaws.com/ouroboros_selector.png" width="730px" style="border:0px;margin-left:80px;" /></a>
+    
+    <p>Making the routinely hard stuff easier is a continual goal for the Zooniverse development team. That way we can focus maximum effort on the front-end experience and what’s different and hard about each new project we build.</p>
+    
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
