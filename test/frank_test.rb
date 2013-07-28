@@ -15,7 +15,7 @@ class FrankTest < Test::Unit::TestCase
     get '/'
     assert last_response.ok?
     assert last_response.body.include?('Hello, I\'m Arfon Smith')
-    assert_equal 'public, max-age=300', last_response.headers['Cache-Control']
+    assert_equal 'public, max-age=900', last_response.headers['Cache-Control']
   end
 
   def test_thesis_renders_thesis_page
@@ -76,14 +76,6 @@ class TweetTest < Test::Unit::TestCase
   def test_methods
     @tweet = Tweet.new
     %w{ id text date url }.each { |method| assert @tweet.respond_to?(method)}
-  end
-  
-  def test_twitter_response
-    json = File.open('test/fixtures/twitter.json', 'r')
-    tweets = Tweet.parse_recent_tweets(json)
-    assert tweets.is_a?(Array)
-    assert_equal 5, tweets.size
-    assert_equal 'Cadi: http://flic.kr/p/9bzBZa', tweets.first.text
   end
   
   def test_url
