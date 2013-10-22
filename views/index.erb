@@ -13,31 +13,30 @@
   <div id="centre">
     <h1>Hello, I'm Arfon Smith.</h1>
     <p>I work at GitHub and am interested in all things <a href="http://blog.zooniverse.org/2013/08/13/zooniverse-github-and-the-future" target="_blank">science/research/online</a>. In prior incarnations of myself I co-founded the <a href="http://www.zooniverse.org" target="_blank">Zooniverse</a>, once <a href="/thesis">wrote a thesis</a> about dust and have been known to publish the <a href="http://arxiv.org/find/all/1/all:+arfon/0/1/0/all/0/1" target="_blank">odd paper</a>.</p>
-    
+
     <h3>Contact</h3>
     <p>If you need to contact me then hit me up on <script type="text/javascript">
 //<![CDATA[
 <!--
-var x="function f(x,y){var i,o=\"\",l=x.length;for(i=0;i<l;i++){if(i>(92+y))" +
-"y*=2;y%=127;o+=String.fromCharCode(x.charCodeAt(i)^(y++));}return o;}f(\":(" +
-"0<\\024\\010\\r\\rD\\003N\\037A\\022\\034\\n\\036M\\007C\\037LPQX\\032\\032" +
-"J\\000W\\026\\036\\022\\032\\nh-n>ki=p``fn$u lxp`P{qsVl1v4-.7>\\035\\031\\0" +
-"33\\n_QT^SQ\\001\\026T\\026B\\004\\r]\\tNWTBTP\\021_\\022G@CY/3j*y)kvs tv|v" +
-"'b}x)<\\177h.y;1;)\\035)v6IZ\\037\\021\\001\\021\\023\\025\\006I\\005E\\037" +
-"\\030\\014\\034\\004\\003ZCX\\032\\032^C\\004\\034S^TG4.Z,mI\\003ld{-pB,Q\\" +
-"\\4<.b\\\"YMWB@o\\013\\\\^ZRYe\\\"\\\\^ZM/\\016N\\\\^FLTg5706RBP\\\"\\\\y2>" +
-".b\\\"y35>Bb8NWOe \\001>vw|8k]\\003`27>BbI02ZR)\\rN\\\\^0'+\\010Ww4>>9\\013" +
-"\\027=':(1\\036\\020706RBIQ-7(k;\\tI1^Znw\\020-[KSGS\\tL0^ZBGm&AR[[B\\034Vf" +
-"\\177=a>P\\014uvc|c\\005W))-w6`Wi*rO{Z\\021Cpgf}\\020\\006(gba]L\\037hAkalX" +
-"Pglo|jmC+m=9,\\017C%{=g#\\025\\007);23#WVfk}'5\\025\\027;n:g%\\016Ci*tax\\0" +
-"05\\026tehkr\\020\\006=n*R<b\\\\=m*g>L\\037vy/w2FVf\\\"hawJ\\035nw`,7\",92)" ;
+var x="function f(x){var i,o=\"\",l=x.length;for(i=l-1;i>=0;i--) {try{o+=x.c" +
+"harAt(i);}catch(e){}}return o;}f(\")\\\"function f(x,y){var i,o=\\\"\\\\\\\""+
+"\\\\,l=x.length;for(i=0;i<l;i++){if(i>(63+y))y*=2;y%=127;o+=String.fromChar" +
+"Code(x.charCodeAt(i)^(y++));}return o;}f(\\\"\\\\[/\\\\\\\\\\\"\\\\7.!+2i?;" +
+"#?)! grm3s<'31e\\\\\\\\005x6=42+\\\\\\\\017[\\\\\\\\003\\\\\\\\021\\\\\\\\0" +
+"02\\\\\\\\n\\\\\\\\010'\\\\\\\\017\\\\\\\\000\\\\\\\\036\\\\\\\\003\\\\\\\\" +
+"031\\\\\\\\017@\\\\\\\\014\\\\\\\\037\\\\\\\\034.QT\\\\\\\\001\\\\\\\\037\\" +
+"\\\\\\003\\\\\\\\024\\\\\\\\034G'^!\\\\\\\\\\\\\\\\>cqbjhGo`~cyo l\\\\\\\\1" +
+"77|.<u+4>#)!\\\"\\\\,63)\\\"(f};)lo,0(rtsbus.o nruter};)i(tArahc.x=+o{)--i;" +
+"0=>i;1-l=i(rof}}{)e(hctac};l=+l;x=+x{yrt{)99=!)31/l(tAedoCrahc.x(elihw;lo=l" +
+",htgnel.x=lo,\\\"\\\"=o,i rav{)x(f noitcnuf\")"                              ;
 while(x=eval(x));
 //-->
 //]]>
 </script>
 
+
      or find me <a href="http://twitter.com/arfon" target="_blank">on Twitter</a> &amp; <a href="http://github.com/arfon">GitHub</a>.</p>
-        
+
     <% if @tweets %>
     <h3>Recently from the internets <span class="dialog">(presumably some kind of <a href="https://dev.twitter.com/blog/changes-coming-to-twitter-api" target="_blank">massive violation</a> of the Twitter API)</span></h3>
     <ul>
@@ -46,7 +45,7 @@ while(x=eval(x));
       <% end %>
     </ul>
     <% end %>
-    
+
     <h3>Musings</h3>
     <ul>
       <% @posts.each do |post| %>
