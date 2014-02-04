@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<title>Weakly Typed - Scientific Software and the Open Collaborative Web</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Scientific Software and the Open Collaborative Web</h1>
+    <p class="preface">I gave a talk back in November at the <a href="http://wssspe.researchcomputing.org.uk/keynotes/" target="_blank">WSSSPE workshop</a> as part of Super Computing 2013. The slides are available <a href="https://speakerdeck.com/arfon/scientific-software-and-the-open-collaborative-web" target="_blank">here</a> but are likely of limited value without notes. Encouraged by <a href="http://www.twitter.com/juretriglav" target="_blank">@juretriglav</a> I'm going to try and summarise my talk here. <br /><br />It's also important to point out here that much of this really is a bunch of recycled ideas originally written up by people far more eloquent than me. I've included links inline where possible.</p>
+
+    <h3>&raquo; Some Background</h3>
+    <p>My research background is in astrochemistry which is essentially an area of research that focuses on the chemistry of astrophysical environments. My particular interest was in studying the environments between stars - <em>the interstellar medium</em> - and the primary method used to interrogate these large clouds of dust and gas is spectroscopy.</p>
+    
+    <p>When I used to meet people and tell them what I did for a living, I suspect most people had ideas about this wonderful life I was leading, jetsetting around the world travelling to exotic locations to use these awesome instruments. Don't get me wrong, being a researcher is absolutely a privilige but it's definitely not as sexy as you might think. The reality of observing is long nights trying to stay awake in a weird state of jetlag and sleep deprivation. Throw in a bunch of caffeine, marginal cuisine, an uncomfortable bed<sup>1</sup> and the worry of messing up your observations and it's an altogether pretty stressful experience. And that's just the beginning - once you've collected your data the next step is to actually do some science...</p>
+    
+    <h3>&raquo; Data Reduction - AKA getting to know your CCD</h3>
+    
+    <p>The goal of data reduction is basically to remove the effect of the instrument (telescope, spectrograph, observing condidtions etc.) from the data you've collected. Doing this properly means that results from different researchers using different facilities can then be compared. Optical spectroscopy works by pointing your telescope at a star or galaxy, collecting some light from the object, splitting that light up by its wavelength and recording the intensity of that light on a detector called a Charged Coupled Device (CCD). This CCD is similar to the one in your digital camera but is typically bigger, much more expensive and in order to perform a proper data reduction you need to get to know this CCD pretty damn well.</p>
+    
+    <p>CCDs are composed of pixels and sometimes these pixels go a little crazy and need to be excluded from the dataset. To remove these pixels you need to create something called a <a href="https://speakerdeck.com/arfon/scientific-software-and-the-open-collaborative-web?slide=14" target="_blank">bad pixel mask</a> which is essentially just a plain text file composed of x,y coordinates describing regions of a CCD that should not be included in the reduced dataset.</p> 
+    <p>Creating this bad pixel mask is a pretty mind-numbing task: you basically open up an image viewer and look at how the CCD responds as you manipulate the dynamic range of the pixel values. Some bad pixels are very obvious, others less so. Depending on how experienced you are at this, how old and how big the CCD is this task might take about two days to complete this task. Now I'd <em>love</em> to tell you that when you leave the observatory you're sent away with a bunch of resources to help you with your data reduction including an up-to-date bad pixel mask file for your CCD but this was far from the case. The reality is that most people end up repeating this task and as a result a vast amount of time is wasted. How much time? Well let's try and work it out...</p>
+    
+    <p>Assuming it takes on average two days for a researcher to produce their bad pixel mask and that your average telescope is churning through three observing runs per week. If the CCD in use lasts for ~15 years then collectively more than 4,680 days of human effort is used producing slightly different versions of the <em>same file</em>. If ever there were a case for version control then this has to be it.</p>
+    
+    <p>This example is deliberately extreme and you might take issue with some of my assumptions here (data reduction pipelines have got much better since I was a student). Regardless the core point remains the same: as a researcher we're taught to think mostly about the future results of our work rather than the tools and approaches we take to derive these results. Initially this is simply down to a lack of training - versioning and sharing our tools is not something that's taught to most aspiring researchers<sup>2</sup>.</p>
+    
+    <p>Later this training barrier still exists but even if presented with the tools to share and collaborate more effectively it's not clear researchers would take advantage of this opportunity. The incentives for this kind of activity are all wrong. If the goal of a researcher is to be a professor then to secure a tenure-track position you need to publish a bunch of papers in the highest profile journals you can find with as few co-authors as possible. No-one on your tenure committee is going to ask for your GitHub username.</p>
+    
+    <blockquote class="statement">The sad thing is that initially we behave like this because we don't know any different, later we choose to behave in a way that limits the research efficiency of the community at large.</blockquote>
+    
+    <p>This is wasteful at any level but as research become ever more data- and compute-oriented an increasing fraction of the research method is being captured in these research products that we're not sharing. <a href="http://www.stanford.edu/~vcs/talks/OKcon2013-Sept172013-STODDEN.pdf" target="_blank">Victoria Stodden's talk</a> at <a href="http://okcon.org/open-science-and-research/session-1/" target="_blank">OKCon</a> last year nailed it when she called out a 'credibility crisis'. I don't know for sure but I'd put a reasonably large bet that as research domains becoming more compute-oriented the effort required to verify a result in the literature increases.</p>
+      
+    <p>This behaviour of not sharing our tools isn't universal though. There are researchers out there <a href="https://github.com/dfm/emcee" target="_blank">publishing code</a> but this is the <a href="https://github.com/astropy/astropy" target="_blank">exception</a> rather than the rule. Until we work out ways to credit these kinds of activities then we can't expect this to be anything other than a rarity.</p>
+      
+    <p>The travesty of this situation is that while the academy is struggling with how to be more research-efficient and collaborate more effectively there are whole communities of people working together seamlessly every day - these are the open source communities we see flourishing on GitHub. <a href="http://ipython.org/" target="_blank">IPython</a> lead Fernando Perez <a href="http://blog.fperez.org/2013/11/an-ambitious-experiment-in-data-science.html" target="_blank">summarises this difference</a> between the sharing work in academic and open source communities with the simplest of statements: open source communities only succeed as their work is <em>'reproducible by necessity'</em>. Simply put, open source communities are better at collaborating because <em>they have to be</em>.</p> 
+    
+    <p>This Web we've all created over the last few decades has led to the creation of a bunch of incredible platforms that allow for seamless communication and sharing of work with others and yet the only tool I know of that's pretty much universally adopted in academia is video conferencing.</p>
+    
+    <h3>&raquo; The Open Collaborative Web</h3>
+    
+    <p>In his <a href="http://marciovm.com/i-want-a-github-of-science/index.html" target="_blank">blog post</a>, Marcio von Muhlen correctly (I think) identifies how on GitHub significant contributions are recognised post-publication and that we should be reaching for something similar to this in academia. In environments where the publication and distribution of digital media is essentially free then prestige can come post-publication through things like usage metrics (downloads, forks or stars on GitHub) or inbound referals from other environments thus increasing a project's visibility to thing like search engines. Altmetrics folks like those at <a href="http://impactstory.org/" target="_blank">Impactstory</a> are working hard on giving researchers an easy way to measure they're impact outside of purely journal-based content but using the success of efforts seems to depend on those in positions of power factoring them into their hiring decisions.</p>
+    
+    <blockquote class="statement">We need to be able to derive meaningful metrics from open contributions and for these to be valued by our peers and tenure committees.</blockquote>
+    
+    <h3>&raquo; Towards Collaborative Versioned Science</h3>
+    
+    <p>von Muhlen <a href="http://marciovm.com/i-want-a-github-of-science/index.html" target="_blank">also suggests</a> that to effect significant change may require a 'nimble' funding agency to come along and offer incentives for a change in behaviour. Recently the Moore and Sloan foundations <a href="http://www.moore.org/programs/science/data-driven-discovery/data-science-environments" target="_blank">announced $37.8M funding</a> for three data science programs at Berkeley, NYU and UW specifically aimed at achieving the following core goals:</p>
+      <ul>
+        <li>Develop meaningful and sustained interactions and collaborations between researchers with backgrounds in specific subjects.</li>
+        <li>Establish career paths that are long-term and sustainable, using alternative metrics and reward structures to retain a new generation of scientists whose research focuses on the multi-disciplinary analysis of massive, noisy, and complex scientific data and the development of the tools and techniques that enable this analysis; and</li>
+        <li>Build on current academic and industrial efforts to work towards an ecosystem of analytical tools and research practices that is sustainable, reusable, extensible, learnable, easy to translate across research areas and enables researchers to spend more time focusing on their science.</li>
+      </ul>
+      
+      <p>It's hard not to get excited about this program as it touches on so many of the key issues necessary to move research towards the networked age. If a stimulus is required for signficant change then this might just be it. Focussing funding on a domain such as data science is smart because it's a research area that's relatively new, is inherently interdisciplinary and relies heavily upon software and tooling to produce results. In the launch event for the program hosted by the White House OSTP <a href="http://www.cs.washington.edu/people/faculty/lazowska/" target="_blank">Ed Lazowska</a> stated that academic environments of today 'do not reward tool builders'. This funding seems explicitly designed to develop a level of maturity in an research domain where sharing methods is at the absolute core.</p>
+        <a href="http://lazowska.cs.washington.edu/OSTP.talk.v12.pdf"><img src="https://s3.amazonaws.com/arfon.org/data-science-cycle.png" style="width:760px;height:588px;margin-left:50px" /></a>
+        
+    <h3>&raquo; Change is coming...</h3>
+    <p>Right now I think it's fair to say that in most domains it's still the products of research (i.e. papers) that are the most highly valued, not the methods. Even popular tools such as <a href="https://github.com/astropy/astropy" target="_blank">Astropy</a> are resorting to what David Donoho describes as 'advertising' by <a href="http://www.aanda.org/articles/aa/abs/2013/10/aa22068-13/aa22068-13.html" target="_blank">publishing a paper</a> about their software to presumably collect some citiations. With 210 stars (bookmarks) and over 150 forks <a href="https://github.com/astropy/astropy" target="_blank">Astropy</a> is a seriously popular GitHub project and yet has fewer than <a href="http://adsabs.harvard.edu/abs/2013A%26A...558A..33A" target="_blank">20 citations</a>.</p>
+      
+      <p>Now more than ever though feels like a time of change. I always thought is was rather remarkable how BP managed to redraw their logo to <a href="http://en.wikipedia.org/wiki/File:BP_Logo.svg" target="_blank">look like a flower</a> and start using 'Beyond Petroleum'. BP presumably saw a future  where energy doesn't come primarly from fossil fuels and started to change their public persona and business model to fit. <a href="http://www.digital-science.com/" target="_blank">Digital Science</a> feels like <a href="http://www.macmillan.com/" target="_blank">Macmillan's</a> bet on the future, one where their current business model doens't exist. <a href="http://en.wikipedia.org/wiki/Alan_Kay" target="_blank">Alan Kay</a> is quoted way to much already but what the hell: </p>
+      
+       <blockquote class="statement">"The best way to predict the future is to invent it." - Alan Kay</blockquote>
+     
+      <p>One of the leaders in the field of altmetrics, <a href="http://www.altmetric.com/" target="_blank">Altmetric.com</a> is funded at least in part by Digital Science. In a time when what constitutes publishing is undergoing massive change, what better way to protect that billion dollar revenue stream than own the innovations that curate this mass of information in the future?</p>
+      
+      <h3>&raquo; So what now?</h3>
+      
+      <p>If I were an aspiring researcher today working in a semi-technical domain then I think I'd be hedging my bets. It's definitely important to keep writing papers and building a 'traditional' career profile but it's also important to realise move towards a culture of reuse, where researchers are sharing more routinely, is one that can be good for both the individual <em>and</em> the community at large. Take a look at the contributions to Dan FM's <a href="https://github.com/dfm/emcee/pulls?direction=desc&page=1&sort=created&state=closed" target="_blank">emcee</a> as a great example of the community iterating, improving and expanding on the original functionality of a body of work.</p>
+        
+        <p>On open source projects this mutually benficial relationship is understood by companies like AT&amp;T who fund <a href="https://github.com/tenderlove" target="_blank">developers</a> to work on open source technologies their business relies upon. 'Open' has won in the software world, how long before we're saying the same about research?</p>
+    
+      <p>Code, data, manuscripts, teaching resources - these are just some of the day-to-day products of our time spent as an academic that by sharing more routinely we can being to change the cultural norms in our resespective fields. Do me a favour - next time you're writing a paper, try posting the code and data up somewhere online<sup>3</sup>, you can even <a href="http://figshare.com/faqs#q2" target="_blank">mint DOIs</a> for the stuff you share. I'd put money on the fact that someone in the next few years is going to figure this altmetrics stuff out and those folks that have been sharing for a while are going to be the ones that reap the rewards.</p>
+    
+		<p class="footnote">1. As you might be able to tell, I never observed at Paranal.<br />
+                        2. There is of course the wonderful work of <a href="http://software-carpentry.org/" target="_blank">Software Carpentry</a> these days.<br />
+                        3. When you share make sure you <a href="http://choosealicense.com/" target="_blank">put a licence on it</a>. It's The Right Thing To Do&trade;
+    </p>
+    
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>

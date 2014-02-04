@@ -22,7 +22,8 @@ h3{
 	font-family:Georgia, serif;
 	font-weight:lighter;
 	font-size:1.3em;
-  padding-top: 20px;
+  padding-top: 10px;
+  margin: 0px;
 }
 
 .dialog{
@@ -35,6 +36,14 @@ p, ul, ul li, ol, ol li, blockquote{
 	font-size:1em;
 	line-height:1.3em;
 }
+
+sup, sub{
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+}
+
+sub { top: 0.4em; }
 
 p.preface{
 	font-style:italic;
