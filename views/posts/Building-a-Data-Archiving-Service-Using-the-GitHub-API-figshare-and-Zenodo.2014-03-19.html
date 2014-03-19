@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<title>Weakly Typed - Building a data archiving service using the GitHub API, figshare and Zenodo</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>Building a data archiving service using the GitHub API, figshare and Zenodo</h1>
+    <p>Over the past couple of weeks we've seen a couple of great examples of service integrations from <a href="http://figshare.com/blog/Working_with_Github_and_Mozilla_to_enable_Code_as_a_Research_Output_/117" target="_blank">figshare</a> and <a href="http://home.web.cern.ch/about/updates/2014/03/tool-developed-cern-makes-software-citation-easier" target="_blank">Zenodo</a> that use the GitHub outbound API to automatically archive GitHub repositories. While the implementation of each solution is likely to be somewhat different I thought it might be useful to write up in general terms how to go about building such a service.</p>
+
+    <p>In a nutshell we need a tool that does the following:
+      <ul>
+        <li>Authenticates against the GitHub API</li>
+        <li>Configures an outbound API endpoint for repository events to be posted to</li>
+        <li>Respond to a GitHub repository event by grabbing a copy of the code</li>
+        <li>Issues a DOI for the code bundle</li>
+      </ul>
+    </p>
+    
+    <p>A while ago, together with Kaitlin Thaney (@MozillaScience) and Mark Hahnel (@figshare) I put together a proof of concept implementation called <a href="https://github.com/arfon/fidgit" target="_blank">Fidgit</a> that basically does the above. You can read more about how to run your own version of this service in the README <a href="https://github.com/arfon/fidgit/blob/master/README.md" target="_blank">here.</a></p>
+
+    <h3>&raquo; Tuning in to the GitHub outbound API</h3>
+
+    <p>GitHub has both an inbound (i.e. send commands to the API) and outbound notifications API called webhooks. By configuring the <a href="http://developer.github.com/webhooks/" target="_blank">webhooks</a> for a repository, it's possible to receive an event notification from GitHub with some information about what has changed on the repo. Check out <a href="http://developer.github.com/webhooks/#events" target="_blank">this list</a> for all of the event types it's possible to tune into but for the purposes of this article we're going to focus on the event type that is generate when a new <a href="https://help.github.com/articles/creating-releases" target-="_blank">release</a> is created.</p>
+
+    <p>Whether it's Zenodo, figshare or a reference implementation like <a href="https://github.com/arfon/fidgit/" target="_blank">fidgit</a>, they all rely upon listening to the [outbound GitHub API <a href="http://developer.github.com/webhooks/" target="_blank">webhooks</a> and responding with some actions based upon the content in the JSON payload received.</p>
+
+    <h3>&raquo; Creating a webhook on a GitHub repo</h3>
+
+    <p>Creating a webhook for a GitHub repo is something that can only be done by someone who has permissions to modify the repository state in some way. In order for figshare and Zenodo to set up the webhooks on your GitHub repos, both applications ask you to log in with your GitHub credentials and authorise their applications to administer your webhooks, they do this using <a href="https://developer.github.com/v3/oauth/" target="_blank">OAuth</a>. While a full OAuth login flow is the 'complete' way to do this, Fidgit requires a <a href="https://github.com/settings/applications" target="_blank">personal access token from your GitHub profile</a> and uses this <a href="https://github.com/arfon/fidgit/blob/master/Rakefile#L22-L48" target="_blank">to authenticate and create a webhook</a>. Note, it's possible to only ask for the conservative permissions on a GitHub user's account to just administer OAuth webhook scopes. You can read more about these scopes <a href="http://developer.github.com/v3/oauth/#scopes" target="_blank">here</a>.</p>
+
+    <h3>&raquo; Archiving the code</h3>
+
+    <p>Once notified of a change in the repository (such as a new release) then we need to go and grab that code. This could be in the form of a 'Git clone' of the repository and all of its history but Fidgit, Zenodo and figshare all choose to just grab a snapshot of the code from the GitHub raw download service. At the bottom right of the page of every GitHub repository, there's a link to 'Download ZIP'. This basically gives us a copy of the current status of the repository but without an Git (or GitHub) information attached such as Git history. As these files can be reasonably large it makes sense to grab this code bundle in a background worker process. That happens in <a href="https://github.com/arfon/fidgit/blob/master/fidgit.rb#L68-L107" target="_blank">Fidgit worker</a> here which basically uses <a href="https://github.com/arfon/fidgit/blob/master/fidgit.rb#L84" target="_blank">plain old curl</a> to grab the <a href="https://github.com/arfon/fidgit/blob/master/fidgit.rb#L41-L43" target="_blank">zip archive</a> and then push the code up to figshare through <a href="https://github.com/arfon/fidgit/blob/master/fidgit.rb#L87-L106" target="_blank">their API</a>.</p>
+
+    <h3>&raquo; Putting a DOI on it</h3>
+
+    <p>This step is left as an exercise for the reader (just kidding). Fidgit doesn't do this, figshare, Zenodo and Dryad are doing this bit and so it's out of scope for this article.</p>
+    
+  </div>
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+  _uacct = "UA-1224199-4";
+  urchinTracker();
+  </script>
+</body>
+</html>
