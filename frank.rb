@@ -33,6 +33,7 @@ end
 class Post < Hashie::Dash
   property :raw_title
   property :raw_posted_at
+  property :recent
   
   def file_name
     "views/posts/#{self.raw_title}.#{self.raw_posted_at}.html"
@@ -44,6 +45,10 @@ class Post < Hashie::Dash
   
   def posted_at
     DateTime.parse(self.raw_posted_at)
+  end
+  
+  def recent?
+    self.posted_at > DateTime.parse('01-01-2013')
   end
   
   def formatted_posted_at

@@ -13,6 +13,10 @@
 	padding:20px 0px;
 }
 
+li.older{
+  display: none;
+}
+
 h1{
 	font-family:Georgia, serif;
 	font-weight:lighter;

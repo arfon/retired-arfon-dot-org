@@ -44,7 +44,6 @@ while(x=eval(x));
 //]]>
 </script>
 
-
      or find me <a href="http://twitter.com/arfon" target="_blank">on Twitter</a> &amp; <a href="http://github.com/arfon">GitHub</a>.</p>
 
     <% if @tweets %>
@@ -56,10 +55,14 @@ while(x=eval(x));
     </ul>
     <% end %>
 
-    <h3>Musings</h3>
+    <h3>Recent musings</h3>
     <ul>
       <% @posts.each do |post| %>
-        <li><a href="/<%= post.raw_title.downcase %>"><%= post.title %></a> <span class="posted">(<%= post.formatted_posted_at %>)</span></li>
+        <% if post.recent? %>
+          <li><a href="/<%= post.raw_title.downcase %>"><%= post.title %></a> <span class="posted">(<%= post.formatted_posted_at %>)</span></li>
+        <% else %>
+          <li class="older"><a href="/<%= post.raw_title.downcase %>"><%= post.title %></a> <span class="posted">(<%= post.formatted_posted_at %>)</span></li>
+        <% end %>
       <% end %>
     </ul>
   </div>
