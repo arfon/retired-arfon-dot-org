@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<title>Weakly Typed - JSON-LD for software discovery, reuse and credit</title>
+  <link href='styles.css' rel='stylesheet' type='text/css' />
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-47852178-1', 'arfon.org');
+    ga('send', 'pageview');
+
+  </script>
+</head>
+
+<body>
+  <div id="centre">
+    <div id="header">
+      <p><a href="/">&larr; Home</a></p>
+    </div>
+    <h1>JSON-LD for software discovery, reuse and credit</h1>
+    <p class="preface">This is a continuation of some work I've been doing with the Mozilla Science Lab and their 'code as a research object' program. There's multiple aspects to this project including work on <a href="https://github.com/arfon/fidgit" rel="noreferrer">code</a> and <a href="http://mozillascience.github.io/code-research-object/" rel="noreferrer">GUI </a> prototypes, discussions around <a href="https://github.com/mozillascience/code-research-object/issues/2" rel="noreferrer">best practices for making code reusable</a> and <a href="https://github.com/mozillascience/code-research-object/issues/12" rel="noreferrer">software citation</a>. This post explores some ideas around linked data and machine readable descriptions of software repositories with the goal being to make software more discoverable and therefore increase reuse.</p>
+    
+    <h3>&raquo; JSON-LD</h3>
+    
+    <p>JSON-LD is a way of describing data with additional context (or semantics if you like) so that for a JSON record like this:</p>
+    <pre><code> { "name" : "Arfon" } </code></pre>
+    
+    <p>when there's an entity called <code>name</code> you know that it means the name of a <a href="http://twitter.com/arfon" rel="noreferrer">person</a> and not a <a href="http://en.wikipedia.org/wiki/Arfon_(Assembly_constituency)" rel="noreferrer">place</a>.</p>
+    
+    <p>If you haven't heard of JSON-LD then there are some great resources <a href="http://json-ld.org/" rel="noreferrer">here</a> and an excellent short screencast on YouTube <a href="https://www.youtube.com/watch?v=vioCbTo3C-4&amp;feature=kp" rel="noreferrer">here</a>.</p>
+
+    <p>One of the reasons JSON-LD is particularly exciting is that it's a lightweight way of organising JSON-formatted data and giving semantic meaning without having to care about things like RDF data models, XML and the (note the capitals) Semantic Web. Being much more succinct than XML and JavaScript native, JSON has over the past few years become <em>the</em> way to expose data through a web-based API. JSON-LD offers a way for API provides (and consumers) to share data more easily with little or no ambiguity about what the data they're describing.</p>
+    
+    <h3>&raquo; So what about software?</h3>
+    
+    <p>Over the past few months there's been a lot of talk about finding ways for researchers to derive (more) credit for code. There are lots of issues at play here but one major factor is that a prerequisite to receiving credit for some piece of code you've written is that a peer needs to both be able to find your work and then reuse it.</p>
+
+    <p>The problem is, it can be pretty hard to find software unless there's a standard place to share tools in that language and the author of the code has chosen to publish there. Ruby has <a href="http://rubygems.org/" rel="noreferrer">RubyGems.org</a>, Python has <a href="https://pypi.python.org/pypi" rel="noreferrer">PyPI</a>, Perl has <a href="http://www.cpan.org/" rel="noreferrer">CPAN</a> but where do I go if I'm looking to find an obscure library written in C++?</p>
+
+    <p>Discovering domain, language and function specific software is an even harder problem to crack. Sure, if I write Ruby I can head over to RubyGems to look for a Gem that might solve my problem but I'm relying on both the author to write a descriptive README and my ability to search for terms that include similar language to the author of the package.</p>
+
+    <p>For many subjects where common languages don't benefit from canonical package indexes and the function of the software is relatively niche, then just finding code that might be useful is a problem.</p>
+    
+    <h3>&raquo; Towards a (machine readable) description of software</h3>
+    
+    <p>One way to address this discoverability problem is to find a standard way of describing software with context for the terms used. A design goal here should be that these files can be almost entirely <em>automatically generated</em>.</p>
+
+    <p>Inspired by the <code>package.json</code> format <a href="https://www.npmjs.org/doc/json.html" rel="noreferrer">prescribed</a> by the npm community and using an ontology described on <a href="http://schema.org" rel="noreferrer">http://schema.org</a> below is a relatively short JSON-LD document that describes the <a href="https://github.com/arfon/fidgit" rel="noreferrer">Fidgit</a> codebase. Let's call it <code>code.jsonld</code> for now.</p>
+    
+    <h3>&raquo;  Minimal citable form</h3>
+    
+    <p></p>
+    <script src="https://gist.github.com/arfon/8bac57548aba1f492d11.js"></script>
+    
+    <p>Note the first two line (<code>@context</code> and <code>@type</code>) defines the context for the key/value pairs in the JSON structure so that <code>name</code> <em>means</em> the name of the codebase. You can see the full ontology for <code>Code</code> <a href="http://schema.org/Code" rel="noreferrer">here</a> but this should mostly be straightforward to understand<sup>1</sup>.</p>
+    
+    <p>Once we get to the authors attribute we're now entering a new context, that of an individual. As we're still using the schema.org ontology for type <code>Person</code> we only need to set the <code>@type</code> attribute here.</p>
+
+    <p>There are a bunch more attributes that we could set here but this feels like a minimal set of information that is sufficient for citation (and therefore credit and attribution for the author).</p>
+    
+    <h3>&raquo; For data archivers</h3>
+    
+    <p>This next example is a slightly modified version of the minimal. This includes multiple authors<sup>2</sup> but now also has keywords required by folks like <a href="http://figshare.com/" rel="noreferrer">figshare</a> and <a href="https://zenodo.org/" rel="noreferrer">Zenodo</a> who require these terms. (Note these keywords should probably be more explicitly structured rather than relying on comma-delimited strings.)</p>
+    
+    <script src="https://gist.github.com/arfon/94e19e034c5e1e2eb200.js"></script>
+    
+    <h3>&raquo; For discovery?</h3>
+    
+    <p>I started by describing the problem of software discovery and how domain, function and language specific searches for tools is hard. So far these JSON-LD snippets don't really help with this problem as we still only have keywords and a description for describing the software function and domain.</p>
+
+    <p>The <a href="http://schema.org/Code" rel="noreferrer">schema.org</a> <code>Code</code> ontology includes a <code>programmingLanguage</code> attribute which solves for doing language-specific searches. At GitHub we're pretty good at detecting this automatically with <a href="https://github.com/github/linguist" rel="noreferrer">Linguist</a> and so it's not even clear that an author of a piece of software would need to manually specify this (a win).</p>
+
+    <p>The challenge when designing a more 'complete' <code>code.jsonld</code> document is that it's seemingly rather tough to automate a description of what subject domain the software has been designed for and what the software <em>does</em>.</p>
+
+    <p>PLOS ONE has a pretty decent <a href="http://www.plosone.org/taxonomy" rel="noreferrer">subject taxonomy</a> that I've extracted into a machine readable form <a rel="noreferrer">here</a> and so it's possible something along these lines could be used to assign a subject domain. Thus far, I've been unable to find a good schema for describing academic subjects (or any subject domains). Going deeper and attempting to describe also the function of software is also proving challenging.</p>
+    
+    <h3>&raquo; Feedback please!</h3>
+    
+    <p>At this point I'd love some feedback on these ideas. The goal here is to promote software discovery and reuse, so framing this in what's possible today is a good place to start reflecting on these ideas. Right now it's possible to do a pretty advanced <a href="https://github.com/search?q=arfon+extension%3Arb&amp;type=Code&amp;ref=advsearch&amp;l=Ruby" rel="noreferrer">search</a> for code on GitHub with facets for programming language, file extension, creation date, username and more. Imagine if you could do the same but add in subject area and software function?</p>
+
+    <p>One major pitfall with this idea is that in order for an index of <code>code.json</code> files to be useful people have to start making them - a classic chicken and egg problem. All is not lost though, pretty much all of the minimal <code>code.json</code> file can be auto-generated and perhaps submitted to authors as a pull request patch by a <a href="https://hubot.github.com/" target="_blank">friendly robot</a>?</p>
+
+    <p>One of the biggest barriers to reusing research software is finding the damn stuff in the first place - does this help?</p>
+    
+    <h3>&raquo; Links</h3>
+    
+    <ul>
+      <li>Description of a project (DOAP) - <a href="https://github.com/edumbill/doap" rel="noreferrer">https://github.com/edumbill/doap</a></li>
+      <li>Schema.org - <a href="http://schema.org" rel="noreferrer">http://schema.org</a></li>
+      <li><a href="http://json-ld.org/">JSON-LD.org</a></li>
+    </ul>
+    
+    <p><sup>1</sup> Note the <a href="http://schema.org/Code" rel="noreferrer">Code ontology</a> on schema.org doesn't include a license attribute which seems like an oversight.<br />
+    <sup>2</sup> It's not clear that this is allowed!</p>
+  </div>
+</body>
+</html>
