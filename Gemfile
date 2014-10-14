@@ -1,4 +1,5 @@
 source 'http://rubygems.org'
+ruby '2.1.2'
 
 gem 'sinatra', '>= 1.3.4'
 gem 'crack', '>= 0.3.2'
