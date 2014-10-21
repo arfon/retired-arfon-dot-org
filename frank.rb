@@ -7,6 +7,9 @@ Twitter.configure do |config|
   config.oauth_token_secret = ENV['TWITTER_OAUTH_SECRET']
 end
 
+set :views, File.dirname(__FILE__) + "/views"
+set :public, File.dirname(__FILE__) + "/public"
+
 class Tweet < Hashie::Dash
   property :id
   property :text
